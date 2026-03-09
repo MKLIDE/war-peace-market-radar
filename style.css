@@ -1,9 +1,9 @@
 /* ========================================
-   ThinkingZaka - Professional Trading Dashboard
-   Clean Dark Theme · No Emojis
+   ThinkingZaka - Smart Portfolio Manager
+   Clean Dark Theme · Professional Design
    ======================================== */
 
-/* ----- CSS Variables ----- */
+/* ----- CSS Variables (unchanged) ----- */
 :root {
     --bg-primary: #0b0f14;
     --bg-secondary: #121821;
@@ -12,19 +12,15 @@
     --border-color: #2c3642;
     --border-light: #2d3b4d;
     
-    --war-color: #ff4d4d;
-    --peace-color: #4dff4d;
-    --gold: #ffd700;
-    --gold-dim: #b8860b;
+    --profit-color: #00ff9c;
+    --loss-color: #ff4d4d;
+    --warning-color: #ffd700;
+    --info-color: #44aaff;
     
     --text-primary: #ffffff;
     --text-secondary: #e0e0e0;
     --text-muted: #9aa5b5;
     --text-dim: #6b7a8f;
-    
-    --success: #00ff9c;
-    --warning: #ffd700;
-    --danger: #ff4d4d;
     
     --up-color: #00ff9c;
     --down-color: #ff4d4d;
@@ -45,7 +41,7 @@
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
 }
 
-/* ----- Reset ----- */
+/* ----- Reset (unchanged) ----- */
 * {
     margin: 0;
     padding: 0;
@@ -68,12 +64,12 @@ body {
     flex-direction: column;
 }
 
-/* ----- Typography ----- */
+/* ----- Typography (unchanged) ----- */
 h1 {
     font-size: 24px;
     font-weight: 600;
     letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #fff, var(--gold));
+    background: linear-gradient(135deg, #fff, #ffd700);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -83,18 +79,11 @@ h2 {
     font-size: 18px;
     font-weight: 500;
     color: var(--text-secondary);
-    border-left: 3px solid var(--gold);
+    border-left: 3px solid #ffd700;
     padding-left: var(--spacing-md);
 }
 
-h3 {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-sm);
-}
-
-/* ----- Header ----- */
+/* ----- Header (unchanged) ----- */
 .header {
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
@@ -143,8 +132,8 @@ h3 {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--success);
-    box-shadow: 0 0 8px var(--success);
+    background: var(--profit-color);
+    box-shadow: 0 0 8px var(--profit-color);
     animation: pulse 2s infinite;
 }
 
@@ -154,7 +143,7 @@ h3 {
     100% { opacity: 1; }
 }
 
-.api-counter {
+.api-stats {
     font-size: 12px;
     color: var(--text-dim);
     background: var(--bg-primary);
@@ -164,8 +153,8 @@ h3 {
 
 .refresh-button {
     background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
+    border: 1px solid #ffd700;
+    color: #ffd700;
     padding: 6px 16px;
     border-radius: var(--radius-xl);
     font-size: 13px;
@@ -175,11 +164,16 @@ h3 {
 }
 
 .refresh-button:hover {
-    background: var(--gold);
+    background: #ffd700;
     color: var(--bg-primary);
 }
 
-/* ----- Main Container ----- */
+.refresh-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ----- Main Container (unchanged) ----- */
 .main {
     max-width: 1400px;
     margin: 0 auto;
@@ -187,12 +181,14 @@ h3 {
     flex: 1;
 }
 
-/* ----- Section Headers ----- */
+/* ----- Section Headers (unchanged) ----- */
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
 }
 
 .update-time {
@@ -208,71 +204,56 @@ h3 {
     color: var(--text-dim);
 }
 
-.war-title {
-    color: var(--war-color);
-    border-left-color: var(--war-color);
-}
-
-.peace-title {
-    color: var(--peace-color);
-    border-left-color: var(--peace-color);
-}
-
-/* ----- Regime Card ----- */
-.regime-section {
+/* ----- Portfolio Summary (new) ----- */
+.summary-section {
     margin-bottom: var(--spacing-xl);
 }
 
-.regime-card {
+.summary-card {
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
     border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
 }
 
-.regime-value {
-    font-size: 28px;
+.portfolio-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffd700;
+    font-family: 'Courier New', monospace;
+}
+
+.portfolio-pnl {
+    font-size: 20px;
     font-weight: 600;
-    text-align: center;
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-xl);
+    background: var(--bg-card);
 }
 
-.regime-value.war {
-    background: rgba(255, 77, 77, 0.1);
-    color: var(--war-color);
-    border-left: 4px solid var(--war-color);
+.portfolio-pnl.positive {
+    color: var(--profit-color);
 }
 
-.regime-value.peace {
-    background: rgba(77, 255, 77, 0.1);
-    color: var(--peace-color);
-    border-left: 4px solid var(--peace-color);
+.portfolio-pnl.negative {
+    color: var(--loss-color);
 }
 
-.regime-value.neutral {
-    background: rgba(255, 215, 0, 0.1);
-    color: var(--gold);
-    border-left: 4px solid var(--gold);
-}
-
-.regime-allocation {
-    text-align: center;
-    margin-top: var(--spacing-md);
-    color: var(--text-muted);
-    font-size: 14px;
-}
-
-/* ----- Card Grid ----- */
+/* ----- Card Grid (unchanged) ----- */
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
 }
 
-/* ----- Cards ----- */
-.card {
+/* ----- Portfolio Cards (updated) ----- */
+.portfolio-card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
@@ -280,23 +261,24 @@ h3 {
     transition: all 0.2s;
 }
 
-.card:hover {
+.portfolio-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-    border-color: var(--gold);
+    border-color: #ffd700;
     background: var(--bg-card-hover);
 }
 
-.card.war {
-    border-top: 3px solid var(--war-color);
+.portfolio-card.profit {
+    border-left: 4px solid var(--profit-color);
 }
 
-.card.peace {
-    border-top: 3px solid var(--peace-color);
+.portfolio-card.loss {
+    border-left: 4px solid var(--loss-color);
 }
 
 .card.loading {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 200px;
@@ -310,102 +292,100 @@ h3 {
 }
 
 .card-symbol {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
-.card-category {
+.card-type {
     font-size: 10px;
     padding: 3px 8px;
     border-radius: 12px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
 }
 
-.card-category.war {
-    background: var(--war-color);
-    color: white;
-}
-
-.card-category.peace {
-    background: var(--peace-color);
-    color: black;
-}
+.card-type.crypto { background: #44aaff; color: white; }
+.card-type.stock { background: #00ff9c; color: black; }
+.card-type.etf { background: #ffd700; color: black; }
+.card-type.commodity { background: #ff8c00; color: black; }
 
 .card-price {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     margin: var(--spacing-md) 0;
     font-family: 'Courier New', monospace;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: var(--spacing-sm);
 }
 
-.card-price.up { color: var(--up-color); }
-.card-price.down { color: var(--down-color); }
+.day-change {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+}
 
-/* Strategy Panel */
-.strategy-panel {
+.day-change.up {
+    background: rgba(0, 255, 156, 0.1);
+    color: var(--profit-color);
+}
+
+.day-change.down {
+    background: rgba(255, 77, 77, 0.1);
+    color: var(--loss-color);
+}
+
+/* Position Details */
+.position-details {
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
     padding: var(--spacing-md);
     margin: var(--spacing-md) 0;
-    font-size: 12px;
-    border: 1px solid var(--border-light);
+    font-size: 13px;
 }
 
-.zone-row {
+.position-row {
     display: flex;
     justify-content: space-between;
     margin-bottom: var(--spacing-xs);
     color: var(--text-muted);
 }
 
-.zone-row span {
-    color: var(--gold);
+.position-row.profit {
+    color: var(--profit-color);
+    font-weight: 600;
+}
+
+.position-row.loss {
+    color: var(--loss-color);
     font-weight: 600;
 }
 
 .indicator-row {
     display: flex;
     gap: var(--spacing-md);
-    margin: var(--spacing-sm) 0;
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border-light);
 }
 
 .rsi {
     font-weight: 600;
 }
 
-.rsi.overbought { color: var(--danger); }
-.rsi.oversold { color: var(--success); }
+.rsi.overbought { color: var(--loss-color); }
+.rsi.oversold { color: var(--profit-color); }
 
-.signal-badge {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-    font-size: 11px;
-    text-align: center;
-    margin-top: var(--spacing-sm);
+.volatility {
+    color: var(--warning-color);
 }
 
-.signal-badge.buy {
-    background: var(--success);
-    color: black;
-}
-
-.signal-badge.wait {
-    background: var(--warning);
-    color: black;
-}
-
-.signal-badge.stop {
-    background: var(--danger);
-    color: white;
-}
-
+/* Card Footer */
 .card-footer {
     display: flex;
     justify-content: space-between;
@@ -416,13 +396,27 @@ h3 {
     border-top: 1px solid var(--border-light);
 }
 
-/* ----- Alerts Section ----- */
+/* ----- Alerts Section (updated) ----- */
 .alerts-section {
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
     margin: var(--spacing-xl) 0;
     border: 1px solid var(--border-color);
+}
+
+.alert-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.alert-count {
+    background: var(--bg-card);
+    color: var(--text-muted);
+    padding: 2px 8px;
+    border-radius: var(--radius-xl);
+    font-size: 12px;
 }
 
 .clear-button {
@@ -436,12 +430,12 @@ h3 {
 }
 
 .clear-button:hover {
-    border-color: var(--danger);
-    color: var(--danger);
+    border-color: var(--loss-color);
+    color: var(--loss-color);
 }
 
 .alerts-container {
-    max-height: 250px;
+    max-height: 300px;
     overflow-y: auto;
     border-radius: var(--radius-md);
     background: var(--bg-primary);
@@ -456,10 +450,26 @@ h3 {
     padding: var(--spacing-md);
     margin-bottom: var(--spacing-sm);
     background: var(--bg-card);
-    border-left: 3px solid var(--gold);
+    border-left: 3px solid #ffd700;
     border-radius: var(--radius-sm);
     font-size: 13px;
     color: var(--text-secondary);
+    animation: slideIn 0.3s;
+}
+
+.alert-list li:last-child {
+    margin-bottom: 0;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .alert-placeholder {
@@ -468,14 +478,14 @@ h3 {
     border-left-color: var(--text-dim) !important;
 }
 
-/* ----- Actions Section ----- */
+/* ----- Actions Section (unchanged) ----- */
 .actions-section {
     margin: var(--spacing-xl) 0;
 }
 
 .actions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: var(--spacing-md);
 }
 
@@ -493,11 +503,11 @@ h3 {
 
 .action-button:hover {
     background: var(--bg-card-hover);
-    border-color: var(--gold);
-    color: var(--gold);
+    border-color: #ffd700;
+    color: #ffd700;
 }
 
-/* ----- Footer ----- */
+/* ----- Footer (unchanged) ----- */
 .footer {
     background: var(--bg-secondary);
     border-top: 1px solid var(--border-color);
@@ -519,11 +529,15 @@ h3 {
 }
 
 .install-link {
-    color: var(--success);
+    color: var(--profit-color);
     text-decoration: none;
 }
 
-/* ----- Modal ----- */
+.install-link:hover {
+    text-decoration: underline;
+}
+
+/* ----- Modal (updated) ----- */
 .modal {
     display: none;
     position: fixed;
@@ -573,7 +587,7 @@ h3 {
 }
 
 .modal-close:hover {
-    background: var(--danger);
+    background: var(--loss-color);
     color: white;
 }
 
@@ -584,7 +598,8 @@ h3 {
 .modal-body h3 {
     margin-top: var(--spacing-lg);
     margin-bottom: var(--spacing-sm);
-    color: var(--gold);
+    color: #ffd700;
+    font-size: 16px;
 }
 
 .modal-body ul {
@@ -599,12 +614,27 @@ h3 {
     border-bottom: 1px solid var(--border-light);
 }
 
-/* ----- Loading Spinner ----- */
+.modal-body li:last-child {
+    border-bottom: none;
+}
+
+.modal-note {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ----- Loading Spinner (unchanged) ----- */
 .loading-spinner {
-    width: 30px;
-    height: 30px;
-    border: 2px solid var(--border-light);
-    border-top-color: var(--gold);
+    width: 40px;
+    height: 40px;
+    margin: 0 auto;
+    border: 3px solid var(--border-light);
+    border-top-color: #ffd700;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -613,7 +643,7 @@ h3 {
     to { transform: rotate(360deg); }
 }
 
-/* ----- Responsive ----- */
+/* ----- Responsive (unchanged) ----- */
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
@@ -623,6 +653,11 @@ h3 {
     .status-bar {
         width: 100%;
         justify-content: center;
+    }
+    
+    .summary-card {
+        flex-direction: column;
+        text-align: center;
     }
     
     .card-grid {
@@ -640,12 +675,16 @@ h3 {
 }
 
 @media (max-width: 480px) {
-    .regime-value {
-        font-size: 20px;
+    .portfolio-value {
+        font-size: 24px;
+    }
+    
+    .portfolio-pnl {
+        font-size: 16px;
     }
     
     .card-price {
-        font-size: 22px;
+        font-size: 20px;
     }
     
     .actions-grid {
@@ -653,7 +692,7 @@ h3 {
     }
 }
 
-/* ----- Scrollbar ----- */
+/* ----- Scrollbar (unchanged) ----- */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -669,5 +708,5 @@ h3 {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--gold-dim);
-}
+    background: #b8860b;
+                       }
