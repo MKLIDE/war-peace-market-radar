@@ -1,407 +1,732 @@
 // ===========================
-// ThinkingZaka v2.0 - Free Tier Optimized
-// RESPECTS 25 calls/day limit
+// ThinkingZaka v3.0 - Complete War/Peace Strategy
+// PWA Ready - Works with Samsung Web Download
 // ===========================
 
+// API Configuration
 const ALPHA_API_KEY = "75IQNS7TVU6Z7WR6";
 
-// Track API usage
-let alphaCallsToday = 0;
-let lastResetDate = new Date().toDateString();
-
-// Asset configuration with priorities
+// Complete Asset List with Strategy Categories
 const assets = {
-  // High priority - check every cycle
-  btc: { 
-    id: "bitcoin", 
-    name: "BTC", 
-    category: "war",
-    priority: 1,
-    source: "coingecko", // Free, unlimited
-    updateInterval: 1 // Every cycle
-  },
-  sol: { 
-    id: "solana", 
-    name: "SOL", 
-    category: "peace",
-    priority: 1,
-    source: "coingecko",
-    updateInterval: 1
-  },
-  pltr: { 
-    id: "PLTR", 
-    name: "PLTR", 
-    category: "war",
-    priority: 1,
-    source: "alphavantage",
-    updateInterval: 3 // Every 3 cycles
-  },
-  qqq: { 
-    id: "QQQ", 
-    name: "QQQ", 
-    category: "peace",
-    priority: 1,
-    source: "alphavantage",
-    updateInterval: 3
-  },
-  gold: { 
-    id: "XAUUSD", 
-    name: "GOLD", 
-    category: "war",
-    priority: 1,
-    source: "alphavantage", 
-    updateInterval: 3
-  },
-  // South African stocks - lower priority, update rarely
-  capitec: { 
-    id: "CPI.JO", 
-    name: "CAPITEC", 
-    category: "peace",
-    priority: 2,
-    source: "alphavantage",
-    updateInterval: 6, // Every 6 cycles (hourly)
-    fallbackPrice: 4210 // Last known price as fallback
-  },
-  standardbank: { 
-    id: "SBK.JO", 
-    name: "STANDBANK", 
-    category: "peace",
-    priority: 2,
-    source: "alphavantage",
-    updateInterval: 6,
-    fallbackPrice: 296
-  },
-  firstrand: { 
-    id: "FSR.JO", 
-    name: "FIRSTRAND", 
-    category: "peace",
-    priority: 2,
-    source: "alphavantage",
-    updateInterval: 6,
-    fallbackPrice: 86
-  },
-  shoprite: { 
-    id: "SHP.JO", 
-    name: "SHOPRITE", 
-    category: "peace",
-    priority: 2,
-    source: "alphavantage",
-    updateInterval: 6,
-    fallbackPrice: 260
-  }
+    // WAR PORTFOLIO - Defense, Safe Haven
+    btc: { 
+        id: "bitcoin", 
+        symbol: "BTC",
+        name: "Bitcoin", 
+        category: "war",
+        type: "crypto",
+        source: "coingecko",
+        priority: 1,
+        entryZone: [63000, 65000],
+        support: 60000,
+        target: 73000,
+        stopLoss: 0.10,
+        allocation: 0.10 // Max 10% of portfolio
+    },
+    pltr: { 
+        id: "PLTR", 
+        symbol: "PLTR",
+        name: "Palantir", 
+        category: "war",
+        type: "stock",
+        source: "alphavantage",
+        priority: 2,
+        entryZone: [142, 148],
+        support: 136,
+        target: 186,
+        stopLoss: 0.10,
+        allocation: 0.15
+    },
+    gold: { 
+        id: "XAUUSD", 
+        symbol: "GOLD",
+        name: "Gold", 
+        category: "war",
+        type: "forex",
+        source: "alphavantage",
+        priority: 2,
+        entryZone: [4805, 5000],
+        support: 4780,
+        target: 6000,
+        stopLoss: 0.05,
+        allocation: 0.15
+    },
+    
+    // PEACE PORTFOLIO - Growth, Risk-On
+    qqq: { 
+        id: "QQQ", 
+        symbol: "QQQ",
+        name: "Nasdaq (QQQ)", 
+        category: "peace",
+        type: "stock",
+        source: "alphavantage",
+        priority: 2,
+        entryZone: [595, 603],
+        support: 585,
+        target: 616,
+        stopLoss: 0.08,
+        allocation: 0.15
+    },
+    sol: { 
+        id: "solana", 
+        symbol: "SOL",
+        name: "Solana", 
+        category: "peace",
+        type: "crypto",
+        source: "coingecko",
+        priority: 1,
+        entryZone: [78, 81],
+        support: 76,
+        target: 101,
+        stopLoss: 0.15,
+        allocation: 0.05
+    },
+    
+    // South African Peace Portfolio
+    capitec: { 
+        id: "CPI.JO", 
+        symbol: "CPI",
+        name: "Capitec", 
+        category: "peace",
+        type: "sa_stock",
+        source: "alphavantage",
+        priority: 3,
+        entryZone: [4155, 4170],
+        support: 4170,
+        target: 4779,
+        stopLoss: 0.10,
+        fallbackPrice: 4210,
+        allocation: 0.10
+    },
+    standardbank: { 
+        id: "SBK.JO", 
+        symbol: "SBK",
+        name: "Standard Bank", 
+        category: "peace",
+        type: "sa_stock",
+        source: "alphavantage",
+        priority: 3,
+        entryZone: [290, 303],
+        support: 285,
+        target: 350,
+        stopLoss: 0.10,
+        fallbackPrice: 296,
+        allocation: 0.10
+    },
+    firstrand: { 
+        id: "FSR.JO", 
+        symbol: "FSR",
+        name: "FirstRand", 
+        category: "peace",
+        type: "sa_stock",
+        source: "alphavantage",
+        priority: 3,
+        entryZone: [86, 87],
+        support: 84,
+        target: 102,
+        stopLoss: 0.10,
+        fallbackPrice: 86,
+        allocation: 0.10
+    },
+    shoprite: { 
+        id: "SHP.JO", 
+        symbol: "SHP",
+        name: "Shoprite", 
+        category: "peace",
+        type: "sa_stock",
+        source: "alphavantage",
+        priority: 3,
+        entryZone: [260, 261],
+        support: 255,
+        target: 285,
+        stopLoss: 0.10,
+        fallbackPrice: 260,
+        allocation: 0.10
+    }
 };
 
-// Cache with expiration
-const cache = {
-  prices: {},
-  lastFetch: {},
-  cycleCount: 0
+// ===========================
+// STATE MANAGEMENT
+// ===========================
+
+const state = {
+    prices: JSON.parse(localStorage.getItem('thinkingzaka_prices') || '{}'),
+    history: JSON.parse(localStorage.getItem('thinkingzaka_history') || '{}'),
+    entries: JSON.parse(localStorage.getItem('thinkingzaka_entries') || '{}'),
+    lastFetch: JSON.parse(localStorage.getItem('thinkingzaka_fetch') || '{}'),
+    alphaCalls: parseInt(localStorage.getItem('thinkingzaka_alphacalls') || '0'),
+    lastReset: localStorage.getItem('thinkingzaka_reset') || new Date().toDateString(),
+    cycleCount: parseInt(localStorage.getItem('thinkingzaka_cycle') || '0'),
+    portfolio: JSON.parse(localStorage.getItem('thinkingzaka_portfolio') || '{"war":0,"peace":0,"cash":100000}')
 };
 
-// Entry zones with targets (from your strategy)
-const zones = {
-  btc: { entry: [63000, 65000], support: 60000, target: 73000 },
-  sol: { entry: [78, 81], support: 76, target: 101 },
-  pltr: { entry: [142, 148], support: 136, target: 186 },
-  qqq: { entry: [595, 603], support: 585, target: 616 },
-  gold: { entry: [4805, 5000], support: 4780, target: 6000 },
-  capitec: { entry: [4155, 4170], support: 4170, target: 4779 },
-  standardbank: { entry: [290, 303], support: 285, target: 350 },
-  firstrand: { entry: [86, 87], support: 84, target: 102 },
-  shoprite: { entry: [260, 261], support: 255, target: 285 }
-};
-
-// Track Alpha Vantage usage
-function checkAlphaLimit() {
-  const today = new Date().toDateString();
-  if (today !== lastResetDate) {
-    alphaCallsToday = 0;
-    lastResetDate = today;
-  }
-  
-  if (alphaCallsToday >= 20) { // Conservative limit (leave buffer)
-    console.warn("⚠️ Approaching Alpha Vantage daily limit");
-    return false;
-  }
-  return true;
-}
-
-// Modified fetch with limit awareness
-async function fetchWithLimit(url, assetId) {
-  if (!checkAlphaLimit()) {
-    // Return cached or fallback price
-    return cache.prices[assetId] !== undefined ? 
-      { fromCache: true, price: cache.prices[assetId] } : 
-      { fromCache: true, price: assets[assetId]?.fallbackPrice || 0 };
-  }
-  
-  try {
-    const res = await fetch(url);
-    alphaCallsToday++;
-    const data = await res.json();
-    return { fromCache: false, data };
-  } catch (error) {
-    console.error(`Fetch failed for ${assetId}:`, error);
-    return { fromCache: true, price: cache.prices[assetId] || assets[assetId]?.fallbackPrice || 0 };
-  }
-}
-
-// Price fetching with priority-based scheduling
-async function getPrice(assetId, asset) {
-  const now = Date.now();
-  const cycle = cache.cycleCount;
-  
-  // Check if this asset should update this cycle based on priority
-  if (cycle % asset.updateInterval !== 0) {
-    // Return cached price
-    return cache.prices[assetId] || asset.fallbackPrice || 0;
-  }
-  
-  // Check cache age (don't update if recent)
-  if (cache.lastFetch[assetId] && now - cache.lastFetch[assetId] < 300000) { // 5 min cache
-    return cache.prices[assetId];
-  }
-  
-  try {
-    let price = 0;
-    
-    if (asset.source === "coingecko") {
-      // CoinGecko - free, good limits
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${asset.id}&vs_currencies=usd`);
-      const data = await res.json();
-      price = data[asset.id]?.usd || 0;
-    } else {
-      // Alpha Vantage - limited calls
-      const func = asset.id === "XAUUSD" ? "CURRENCY_EXCHANGE_RATE" : "GLOBAL_QUOTE";
-      const url = func === "GLOBAL_QUOTE"
-        ? `https://www.alphavantage.co/query?function=${func}&symbol=${asset.id}&apikey=${ALPHA_API_KEY}`
-        : `https://www.alphavantage.co/query?function=${func}&from_currency=XAU&to_currency=USD&apikey=${ALPHA_API_KEY}`;
-      
-      const result = await fetchWithLimit(url, assetId);
-      
-      if (result.fromCache) {
-        return result.price;
-      }
-      
-      if (func === "GLOBAL_QUOTE") {
-        price = parseFloat(result.data["Global Quote"]?.["05. price"] || 0);
-      } else {
-        price = parseFloat(result.data["Realtime Currency Exchange Rate"]?.["5. Exchange Rate"] || 0);
-      }
-    }
-    
-    if (price > 0) {
-      cache.prices[assetId] = price;
-      cache.lastFetch[assetId] = now;
-    }
-    
-    return price || cache.prices[assetId] || asset.fallbackPrice || 0;
-  } catch (error) {
-    console.error(`Error fetching ${assetId}:`, error);
-    return cache.prices[assetId] || asset.fallbackPrice || 0;
-  }
-}
-
-// RSI simulation using price position (saves API calls)
-function calculateSimulatedRSI(assetId, currentPrice) {
-  const zone = zones[assetId];
-  if (!zone) return 50;
-  
-  // Calculate where price is in its recent range
-  const range = zone.target - zone.support;
-  if (range <= 0) return 50;
-  
-  const position = (currentPrice - zone.support) / range;
-  // Convert to 0-100 scale, with 50 as neutral
-  const simulatedRSI = Math.min(100, Math.max(0, position * 100));
-  
-  return Math.round(simulatedRSI);
-}
-
-// Entry analysis using your strategy rules
-function analyzeEntry(assetId, price) {
-  const zone = zones[assetId];
-  if (!zone) return null;
-  
-  const inZone = price >= zone.entry[0] && price <= zone.entry[1];
-  const nearSupport = price <= zone.support * 1.02;
-  const rsi = calculateSimulatedRSI(assetId, price);
-  const distanceToTarget = ((zone.target - price) / price) * 100;
-  
-  // Your strategy: "Buy pullbacks, not breakouts"
-  const isBreakout = price > zone.entry[1];
-  const isPullback = price < zone.entry[0] && price > zone.support;
-  
-  // Entry logic based on your strategy document
-  let shouldEnter = false;
-  let reason = "";
-  let confidence = "LOW";
-  
-  if (inZone && rsi < 65) {
-    shouldEnter = true;
-    reason = `In entry zone with RSI ${rsi} - healthy pullback`;
-    confidence = "HIGH";
-  } else if (nearSupport && rsi < 50) {
-    shouldEnter = true;
-    reason = `Near support with RSI ${rsi} - accumulation zone`;
-    confidence = "MEDIUM";
-  } else if (isPullback && rsi < 40) {
-    shouldEnter = true;
-    reason = `Deep pullback, RSI ${rsi} - oversold`;
-    confidence = "HIGH";
-  }
-  
-  return {
-    inZone,
-    nearSupport,
-    isBreakout,
-    isPullback,
-    rsi,
-    distanceToTarget: distanceToTarget.toFixed(1) + "%",
-    shouldEnter,
-    reason,
-    confidence
-  };
-}
-
-// Macro regime detection from your strategy
-function detectMacroRegime() {
-  let warScore = 0;
-  let peaceScore = 0;
-  
-  const btc = cache.prices.btc || 0;
-  const pltr = cache.prices.pltr || 0;
-  const qqq = cache.prices.qqq || 0;
-  const gold = cache.prices.gold || 0;
-  
-  // War signals from your document
-  if (gold > zones.gold.support * 1.02) warScore += 1; // Rising gold = safe haven
-  if (btc < zones.btc.support) warScore += 1; // BTC down = fear
-  if (pltr > zones.pltr.target) warScore += 1; // Defense spending up
-  
-  // Peace signals from your document
-  if (qqq > zones.qqq.support * 1.05) peaceScore += 1; // Tech up = risk on
-  if (btc > zones.btc.entry[0]) peaceScore += 1; // BTC stable/up
-  if (pltr < zones.pltr.entry[1]) peaceScore += 1; // PLTR pullback = not spiking
-  
-  if (warScore > peaceScore + 1) return "⚔️ WAR BIAS - Favor defense assets";
-  if (peaceScore > warScore + 1) return "🕊️ PEACE BIAS - Favor growth assets";
-  return "⚖️ NEUTRAL - Balanced allocation (40/40/20)";
-}
-
-// Update UI with full strategy info
-function updateCard(assetId, price) {
-  const asset = assets[assetId];
-  const card = document.getElementById(assetId);
-  if (!card || !asset) return;
-  
-  const analysis = analyzeEntry(assetId, price);
-  const arrow = cache.prices[assetId] ? 
-    (price > cache.prices[assetId] ? "↑" : price < cache.prices[assetId] ? "↓" : "→") : "";
-  
-  cache.prices[assetId] = price;
-  
-  // Build strategy-aware HTML
-  let strategyHtml = "";
-  if (analysis) {
-    strategyHtml = `
-      <div class="strategy-panel">
-        <div class="zone-info">
-          <small>Entry: $${zones[assetId].entry[0].toLocaleString()}-${zones[assetId].entry[1].toLocaleString()}</small>
-          <small>Support: $${zones[assetId].support.toLocaleString()}</small>
-          <small>Target: $${zones[assetId].target.toLocaleString()} (${analysis.distanceToTarget})</small>
-        </div>
-        <div class="tech-info">
-          <span class="rsi">RSI: ${analysis.rsi}</span>
-          ${analysis.isBreakout ? '<span class="warning">⚠️ Breakout - wait for pullback</span>' : ''}
-          ${analysis.isPullback ? '<span class="signal">📉 Pullback - watching</span>' : ''}
-        </div>
-        ${analysis.shouldEnter ? 
-          `<div class="buy-signal ${analysis.confidence.toLowerCase()}">
-            🎯 BUY SIGNAL (${analysis.confidence} confidence)<br>
-            <small>${analysis.reason}</small>
-           </div>` : 
-          ''}
-      </div>
-    `;
-  }
-  
-  card.innerHTML = `
-    <h3>${asset.name} <span class="category ${asset.category}">${asset.category}</span></h3>
-    <div class="price">$${price.toLocaleString()} ${arrow}</div>
-    ${strategyHtml}
-    <div class="metadata">
-      <small>Source: ${asset.source}</small>
-      <small>${new Date().toLocaleTimeString()}</small>
-    </div>
-  `;
-}
-
-// Main update loop with cycle counting
-async function updateMarket() {
-  cache.cycleCount++;
-  
-  // Show API usage
-  const usageEl = document.getElementById("apiUsage");
-  if (usageEl) {
-    usageEl.textContent = `Alpha Vantage: ${alphaCallsToday}/20 today`;
-  }
-  
-  // Update each asset based on priority schedule
-  for (const [id, asset] of Object.entries(assets)) {
-    const price = await getPrice(id, asset);
-    if (price > 0) {
-      updateCard(id, price);
-      
-      // Generate alert if buy signal
-      const analysis = analyzeEntry(id, price);
-      if (analysis?.shouldEnter) {
-        createAlert(`🎯 ${asset.name}: ${analysis.reason} ($${price})`);
-      }
-    }
-  }
-  
-  // Update macro regime
-  const macroEl = document.getElementById("macroStatus");
-  if (macroEl) {
-    macroEl.textContent = detectMacroRegime();
-  }
-}
-
-// Initialize with your existing HTML structure
-document.addEventListener('DOMContentLoaded', () => {
-  // Add API usage indicator
-  const header = document.querySelector('h1') || document.body;
-  const usageDiv = document.createElement('div');
-  usageDiv.id = 'apiUsage';
-  usageDiv.style.fontSize = '12px';
-  usageDiv.style.color = '#888';
-  header.insertAdjacentElement('afterend', usageDiv);
-  
-  // Start updates
-  updateMarket();
-  setInterval(updateMarket, 600000); // 10 minutes to save API calls
+// Initialize history arrays
+Object.keys(assets).forEach(key => {
+    if (!state.history[key]) state.history[key] = [];
 });
 
-// Styling for strategy UI
-const style = document.createElement('style');
-style.textContent = `
-  .category { font-size: 10px; padding: 2px 5px; border-radius: 3px; }
-  .category.war { background: #ff4444; color: white; }
-  .category.peace { background: #44ff44; color: black; }
-  .strategy-panel { font-size: 12px; margin: 8px 0; padding: 5px; background: #f5f5f5; border-radius: 3px; }
-  .zone-info { display: flex; justify-content: space-between; margin-bottom: 3px; }
-  .tech-info { display: flex; justify-content: space-between; margin-bottom: 5px; }
-  .rsi { font-weight: bold; }
-  .warning { color: orange; }
-  .signal { color: blue; }
-  .buy-signal { 
-    background: #00ff00; color: black; padding: 5px; border-radius: 3px; 
-    font-weight: bold; text-align: center; margin-top: 5px;
-  }
-  .buy-signal.high { background: #00ff00; }
-  .buy-signal.medium { background: #ffff00; }
-  .buy-signal.low { background: #ffaa00; }
-  .metadata { display: flex; justify-content: space-between; margin-top: 5px; color: #888; }
-`;
-document.head.appendChild(style);
+// ===========================
+// PWA NOTIFICATION SETUP
+// ===========================
+
+async function setupNotifications() {
+    if (!('Notification' in window) || !navigator.serviceWorker) {
+        console.log('Notifications not fully supported');
+        return false;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        
+        if (Notification.permission === 'granted') {
+            return true;
+        } else if (Notification.permission !== 'denied') {
+            const permission = await Notification.requestPermission();
+            return permission === 'granted';
+        }
+    } catch (error) {
+        console.log('Notification setup error:', error);
+    }
+    return false;
+}
+
+// Use ServiceWorker for notifications (fixes your error)
+async function sendNotification(title, body) {
+    if (!('serviceWorker' in navigator)) {
+        // Fallback to alert
+        createAlert(`🔔 ${title}: ${body}`);
+        return;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+            body: body,
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-72.png',
+            vibrate: [200, 100, 200],
+            data: { timestamp: Date.now() }
+        });
+    } catch (error) {
+        console.log('Notification error:', error);
+        createAlert(`🔔 ${title}: ${body}`); // Fallback
+    }
+}
+
+// ===========================
+// API LIMIT MANAGEMENT
+// ===========================
+
+function checkAlphaLimit() {
+    const today = new Date().toDateString();
+    if (today !== state.lastReset) {
+        state.alphaCalls = 0;
+        state.lastReset = today;
+        localStorage.setItem('thinkingzaka_reset', today);
+    }
+    
+    const apiEl = document.getElementById("apiUsage");
+    if (apiEl) {
+        apiEl.textContent = `Alpha Vantage: ${state.alphaCalls}/25 today`;
+        if (state.alphaCalls > 20) apiEl.className = "api-status warning";
+        else if (state.alphaCalls > 23) apiEl.className = "api-status error";
+        else apiEl.className = "api-status";
+    }
+    
+    localStorage.setItem('thinkingzaka_alphacalls', state.alphaCalls.toString());
+    return state.alphaCalls < 23;
+}
+
+// ===========================
+// PRICE FETCHING
+// ===========================
+
+async function fetchJSON(url, retries = 2) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+        }
+    }
+}
+
+async function getUSDZARRate() {
+    try {
+        const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=ZAR&apikey=${ALPHA_API_KEY}`;
+        state.alphaCalls++;
+        const data = await fetchJSON(url);
+        return parseFloat(data["Realtime Currency Exchange Rate"]?.["5. Exchange Rate"] || 18.5);
+    } catch {
+        return 18.5;
+    }
+}
+
+async function getPrice(assetKey, asset) {
+    const now = Date.now();
+    
+    // Check cache
+    const cacheTime = asset.priority === 1 ? 120000 : 300000;
+    if (state.lastFetch[assetKey] && now - state.lastFetch[assetKey] < cacheTime) {
+        return state.prices[assetKey];
+    }
+    
+    // Stagger low priority assets
+    if (asset.priority === 3 && state.cycleCount % 3 !== 0) {
+        return state.prices[assetKey] || asset.fallbackPrice || 0;
+    }
+    
+    try {
+        let price = 0;
+        let usdPrice = 0;
+        
+        if (asset.type === "crypto") {
+            const data = await fetchJSON(`https://api.coingecko.com/api/v3/simple/price?ids=${asset.id}&vs_currencies=usd`);
+            price = data[asset.id]?.usd || 0;
+            usdPrice = price;
+        } 
+        else if (asset.type === "sa_stock") {
+            if (!checkAlphaLimit()) return state.prices[assetKey] || asset.fallbackPrice || 0;
+            
+            const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${asset.id}&apikey=${ALPHA_API_KEY}`;
+            state.alphaCalls++;
+            const data = await fetchJSON(url);
+            
+            const zarPrice = parseFloat(data["Global Quote"]?.["05. price"] || 0);
+            if (zarPrice > 0) {
+                const usdZar = await getUSDZARRate();
+                price = zarPrice;
+                usdPrice = zarPrice / usdZar;
+            }
+        }
+        else if (asset.type === "forex") {
+            if (!checkAlphaLimit()) return state.prices[assetKey] || 0;
+            
+            const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=XAU&to_currency=USD&apikey=${ALPHA_API_KEY}`;
+            state.alphaCalls++;
+            const data = await fetchJSON(url);
+            price = parseFloat(data["Realtime Currency Exchange Rate"]?.["5. Exchange Rate"] || 0);
+            usdPrice = price;
+        }
+        else {
+            if (!checkAlphaLimit()) return state.prices[assetKey] || 0;
+            
+            const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${asset.id}&apikey=${ALPHA_API_KEY}`;
+            state.alphaCalls++;
+            const data = await fetchJSON(url);
+            price = parseFloat(data["Global Quote"]?.["05. price"] || 0);
+            usdPrice = price;
+        }
+        
+        if (price > 0) {
+            state.prices[assetKey] = usdPrice || price;
+            state.lastFetch[assetKey] = now;
+            
+            state.history[assetKey].push(usdPrice || price);
+            if (state.history[assetKey].length > 20) {
+                state.history[assetKey].shift();
+            }
+            
+            // Persist to localStorage
+            localStorage.setItem('thinkingzaka_prices', JSON.stringify(state.prices));
+            localStorage.setItem('thinkingzaka_history', JSON.stringify(state.history));
+            localStorage.setItem('thinkingzaka_fetch', JSON.stringify(state.lastFetch));
+        }
+        
+        return state.prices[assetKey] || asset.fallbackPrice || 0;
+        
+    } catch (error) {
+        console.error(`Error fetching ${assetKey}:`, error);
+        createAlert(`⚠️ ${asset.name} data error - using cached`);
+        return state.prices[assetKey] || asset.fallbackPrice || 0;
+    }
+}
+
+// ===========================
+// TECHNICAL ANALYSIS
+// ===========================
+
+function calculateRSI(assetKey, currentPrice) {
+    const history = state.history[assetKey] || [];
+    if (history.length < 14) return 50;
+    
+    let gains = 0, losses = 0;
+    for (let i = history.length - 14; i < history.length - 1; i++) {
+        const change = history[i + 1] - history[i];
+        if (change > 0) gains += change;
+        else losses -= change;
+    }
+    
+    const avgGain = gains / 14;
+    const avgLoss = losses / 14;
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+}
+
+// ===========================
+// STRATEGY: Entry Analysis
+// ===========================
+
+function analyzeEntry(assetKey, asset, price) {
+    if (!price || price === 0) return null;
+    
+    const inZone = price >= asset.entryZone[0] && price <= asset.entryZone[1];
+    const nearSupport = price <= asset.support * 1.02;
+    const rsi = calculateRSI(assetKey, price);
+    const isOverbought = rsi > 70;
+    const isOversold = rsi < 30;
+    
+    // Pullback detection
+    const history = state.history[assetKey] || [];
+    const recentHigh = Math.max(...history.slice(-5));
+    const isPullback = recentHigh > price * 1.03;
+    
+    // Distance to target
+    const targetDistance = ((asset.target - price) / price) * 100;
+    
+    // Your strategy: Buy pullbacks in zones, not breakouts
+    let signal = null;
+    
+    if (inZone && isPullback && !isOverbought) {
+        signal = {
+            type: 'STRONG BUY',
+            reason: `Pullback in zone, RSI ${rsi.toFixed(0)}`,
+            confidence: 'HIGH',
+            action: 'buy'
+        };
+    }
+    else if (inZone && !isOverbought && rsi < 60) {
+        signal = {
+            type: 'BUY',
+            reason: `In entry zone, RSI ${rsi.toFixed(0)}`,
+            confidence: 'MEDIUM',
+            action: 'watch'
+        };
+    }
+    else if (nearSupport && isOversold) {
+        signal = {
+            type: 'BUY',
+            reason: `Near support, oversold (RSI ${rsi.toFixed(0)})`,
+            confidence: 'MEDIUM',
+            action: 'watch'
+        };
+    }
+    else if (inZone && isOverbought) {
+        signal = {
+            type: 'WAIT',
+            reason: `In zone but overbought - wait for pullback`,
+            confidence: 'LOW',
+            action: 'wait'
+        };
+    }
+    
+    // Stop loss check
+    const entryPrice = state.entries[assetKey];
+    if (entryPrice) {
+        const loss = (entryPrice - price) / entryPrice;
+        if (loss > asset.stopLoss) {
+            signal = {
+                type: 'STOP LOSS',
+                reason: `${(loss*100).toFixed(1)}% loss - exit signal`,
+                confidence: 'HIGH',
+                action: 'exit'
+            };
+        }
+    }
+    
+    return {
+        price,
+        inZone,
+        nearSupport,
+        rsi: Math.round(rsi),
+        isOverbought,
+        isOversold,
+        isPullback,
+        targetDistance: targetDistance.toFixed(1),
+        signal,
+        entryPrice: state.entries[assetKey]
+    };
+}
+
+// ===========================
+// MACRO REGIME DETECTION
+// ===========================
+
+function detectMacroRegime() {
+    const btc = state.prices.btc || 0;
+    const pltr = state.prices.pltr || 0;
+    const qqq = state.prices.qqq || 0;
+    const gold = state.prices.gold || 0;
+    
+    let warScore = 0;
+    let peaceScore = 0;
+    
+    // War signals from strategy
+    if (gold > assets.gold.support * 1.02) warScore += 2;
+    if (btc < assets.btc.support) warScore += 1;
+    if (pltr > assets.pltr.target) warScore += 2;
+    
+    // Peace signals from strategy
+    if (qqq > assets.qqq.support * 1.03) peaceScore += 2;
+    if (btc > assets.btc.entryZone[0]) peaceScore += 1;
+    if (pltr < assets.pltr.entryZone[1]) peaceScore += 1;
+    
+    // Calculate portfolio allocation
+    const totalPortfolio = state.portfolio.war + state.portfolio.peace + state.portfolio.cash;
+    const warPct = ((state.portfolio.war / totalPortfolio) * 100).toFixed(1);
+    const peacePct = ((state.portfolio.peace / totalPortfolio) * 100).toFixed(1);
+    
+    document.getElementById("allocationStatus").innerHTML = 
+        `War: ${warPct}% | Peace: ${peacePct}% | Target: 40/40/20`;
+    
+    if (warScore > peaceScore + 1) {
+        return {
+            text: "⚔️ WAR BIAS - Favor defense assets",
+            class: "war",
+            allocation: "Increase war to 50%"
+        };
+    } else if (peaceScore > warScore + 1) {
+        return {
+            text: "🕊️ PEACE BIAS - Favor growth assets",
+            class: "peace",
+            allocation: "Increase peace to 50%"
+        };
+    } else {
+        return {
+            text: "⚖️ NEUTRAL - Balanced 40/40/20",
+            class: "neutral",
+            allocation: "Maintain equal weights"
+        };
+    }
+}
+
+// ===========================
+// UI UPDATES
+// ===========================
+
+function createAlert(text) {
+    const list = document.getElementById("alertList");
+    if (!list) return;
+    
+    const li = document.createElement("li");
+    li.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+    list.prepend(li);
+    
+    while (list.children.length > 20) {
+        list.removeChild(list.lastChild);
+    }
+}
+
+function updateCard(assetKey, asset) {
+    const price = state.prices[assetKey] || 0;
+    if (!price) return;
+    
+    let card = document.getElementById(`card-${assetKey}`);
+    const analysis = analyzeEntry(assetKey, asset, price);
+    
+    // Create card if doesn't exist
+    if (!card) {
+        const dashboard = document.getElementById("dashboard");
+        card = document.createElement("div");
+        card.id = `card-${assetKey}`;
+        card.className = `card ${asset.category}`;
+        dashboard.appendChild(card);
+    }
+    
+    // Price change arrow
+    const prevPrice = state.history[assetKey]?.[state.history[assetKey].length - 2] || price;
+    const arrow = price > prevPrice ? "↑" : (price < prevPrice ? "↓" : "→");
+    const priceClass = price > prevPrice ? "up" : (price < prevPrice ? "down" : "stable");
+    
+    // Generate alert for buy signals (but throttle)
+    if (analysis?.signal?.type === 'STRONG BUY') {
+        const lastAlert = localStorage.getItem(`alert_${assetKey}`);
+        const now = Date.now();
+        if (!lastAlert || now - parseInt(lastAlert) > 3600000) { // Once per hour
+            sendNotification(
+                `🎯 ${asset.symbol} BUY SIGNAL`,
+                `${analysis.signal.reason} at $${price.toLocaleString()}`
+            );
+            createAlert(`🎯 ${asset.symbol}: ${analysis.signal.reason} at $${price.toLocaleString()}`);
+            localStorage.setItem(`alert_${assetKey}`, now.toString());
+        }
+    }
+    
+    // Build card HTML
+    card.innerHTML = `
+        <h3>
+            ${asset.symbol}
+            <span class="category-badge ${asset.category}">${asset.category}</span>
+        </h3>
+        <div class="price ${priceClass}">
+            $${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${arrow}
+        </div>
+        
+        <div class="strategy-panel">
+            <div class="zone-row">
+                <span>Entry:</span> $${asset.entryZone[0].toLocaleString()} - $${asset.entryZone[1].toLocaleString()}
+            </div>
+            <div class="zone-row">
+                <span>Target:</span> $${asset.target.toLocaleString()} (${analysis?.targetDistance || 0}%)
+            </div>
+            <div class="indicator-row">
+                <span class="rsi ${analysis?.isOverbought ? 'overbought' : (analysis?.isOversold ? 'oversold' : '')}">
+                    RSI: ${analysis?.rsi || 50}
+                </span>
+                <span>${analysis?.isPullback ? '📉 Pullback' : '📈 Trending'}</span>
+            </div>
+            ${analysis?.signal ? `
+                <div class="signal ${analysis.signal.action === 'buy' ? 'buy-high' : 
+                                      (analysis.signal.action === 'watch' ? 'buy-medium' : 'warning')}">
+                    ${analysis.signal.type === 'STRONG BUY' ? '🎯 ' : ''}
+                    ${analysis.signal.reason}
+                </div>
+            ` : ''}
+            ${analysis?.entryPrice ? `
+                <div style="margin-top: 5px; font-size: 11px; color: #888;">
+                    Entry: $${analysis.entryPrice.toLocaleString()}
+                </div>
+            ` : ''}
+        </div>
+        
+        <div class="metadata">
+            <span>${asset.source}</span>
+            <span>${new Date().toLocaleTimeString()}</span>
+        </div>
+    `;
+}
+
+// ===========================
+// MAIN UPDATE LOOP
+// ===========================
+
+async function updateMarket() {
+    state.cycleCount++;
+    localStorage.setItem('thinkingzaka_cycle', state.cycleCount.toString());
+    
+    // Update API usage display
+    checkAlphaLimit();
+    
+    // Fetch all assets
+    for (const [key, asset] of Object.entries(assets)) {
+        await getPrice(key, asset);
+    }
+    
+    // Update all cards
+    for (const [key, asset] of Object.entries(assets)) {
+        updateCard(key, asset);
+    }
+    
+    // Update macro regime
+    const regime = detectMacroRegime();
+    const macroEl = document.getElementById("macroStatus");
+    if (macroEl) {
+        macroEl.textContent = regime.text;
+        macroEl.className = regime.class;
+    }
+    
+    document.getElementById("lastFullUpdate").textContent = new Date().toLocaleTimeString();
+    
+    // Broadcast to service worker
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+            type: 'UPDATE',
+            data: { prices: state.prices, regime: regime.text }
+        });
+    }
+}
+
+// ===========================
+// MANUAL REFRESH
+// ===========================
+
+function manualRefresh() {
+    createAlert("🔄 Manual refresh triggered");
+    updateMarket();
+}
+
+// ===========================
+// PORTFOLIO TRACKING
+// ===========================
+
+function recordEntry(assetKey, quantity, price) {
+    const asset = assets[assetKey];
+    if (!asset) return;
+    
+    state.entries[assetKey] = price;
+    const value = price * quantity;
+    state.portfolio[asset.category] += value;
+    state.portfolio.cash -= value;
+    
+    localStorage.setItem('thinkingzaka_entries', JSON.stringify(state.entries));
+    localStorage.setItem('thinkingzaka_portfolio', JSON.stringify(state.portfolio));
+    
+    createAlert(`📝 Recorded ${asset.symbol} entry: ${quantity} @ $${price}`);
+    sendNotification('Position Recorded', `${asset.symbol}: ${quantity} shares @ $${price}`);
+}
+
+function recordExit(assetKey, quantity, price) {
+    const asset = assets[assetKey];
+    if (!asset || !state.entries[assetKey]) return;
+    
+    const entryPrice = state.entries[assetKey];
+    const value = price * quantity;
+    const pnl = ((price - entryPrice) / entryPrice) * 100;
+    
+    state.portfolio[asset.category] -= value;
+    state.portfolio.cash += value;
+    delete state.entries[assetKey];
+    
+    localStorage.setItem('thinkingzaka_entries', JSON.stringify(state.entries));
+    localStorage.setItem('thinkingzaka_portfolio', JSON.stringify(state.portfolio));
+    
+    createAlert(`📝 Exited ${asset.symbol}: ${pnl.toFixed(1)}% P&L`);
+}
+
+// ===========================
+// INITIALIZATION
+// ===========================
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Setup notifications
+    await setupNotifications();
+    
+    // Listen for service worker messages
+    if (navigator.serviceWorker) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data.type === 'REFRESH') {
+                updateMarket();
+            }
+        });
+    }
+    
+    // Initial update
+    await updateMarket();
+    
+    // Set interval (10 minutes to save API calls)
+    setInterval(updateMarket, 600000);
+    
+    // Register for background sync if supported
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.sync.register('market-update');
+    }
+});
+
+// Expose to window for console access
+window.thinkingzaka = {
+    refresh: manualRefresh,
+    recordEntry,
+    recordExit,
+    state,
+    assets
+};
