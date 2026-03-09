@@ -3,147 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    
-    <!-- Primary Meta Tags -->
-    <title>ThinkingZaka – Mirror Trading Assistant</title>
-    <meta name="description" content="Your intelligent trading assistant - analyzes, advises, tracks demo portfolio, you mirror on real exchanges">
-    <meta name="theme-color" content="#ffd700">
-    
-    <!-- PWA Tags -->
+    <meta name="theme-color" content="#0b0f14">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="ThinkingZaka">
     
-    <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARzQklUCAgICHwIZIgAAAI8SURBVFiF7ZdPKw">
-    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARzQklUCAgICHwIZIgAAAI8SURBVFiF7ZdPKw">
+    <title>ZAKA · Smart Trading Companion</title>
     
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- Manifest -->
+    <!-- Manifest for PWA -->
     <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons for home screen -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23ffd700'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='%230b0f14' font-weight='bold'>Z</text></svg>">
 </head>
 <body>
-    <!-- App Header -->
+    <!-- Header -->
     <header class="header">
         <div class="header-container">
-            <div class="brand">
-                <h1>THINKINGZAKA</h1>
-                <p class="subtitle">Mirror Trading Assistant · Think → Decide → Mirror → Profit</p>
+            <div class="logo-area">
+                <h1>ZAKA</h1>
+                <span class="subtitle">Smart Trading Companion</span>
             </div>
             
             <div class="status-bar">
-                <div class="connection-status" id="connectionStatus">
+                <div class="connection-status">
                     <span class="dot"></span>
-                    <span class="status-text">LIVE</span>
+                    <span id="connectionText">Live</span>
                 </div>
-                <div class="api-stats" id="apiStats">API: 0/0</div>
-                <button class="refresh-button" id="refreshBtn">Refresh</button>
+                <div class="api-stats" id="apiStats">
+                    BTC: $67,890
+                </div>
+                <button class="refresh-button" id="refreshBtn" onclick="window.location.reload()">
+                    ⟳ Refresh
+                </button>
             </div>
         </div>
     </header>
 
+    <!-- Main Content -->
     <main class="main">
-        <!-- Demo Portfolio Summary -->
+        <!-- Portfolio Summary -->
         <section class="summary-section">
             <div class="section-header">
-                <h2>📊 Your Demo Portfolio</h2>
-                <span class="update-time" id="lastUpdate">Updating...</span>
+                <h2>Your Portfolio</h2>
+                <span class="update-time" id="updateTime">Just now</span>
             </div>
-            <div class="summary-grid">
-                <div class="summary-card" id="portfolioSummary">
-                    <div class="summary-label">Total Value</div>
-                    <div class="portfolio-value">$0.00</div>
+            <div class="summary-card">
+                <div>
+                    <div class="text-muted">Total Value</div>
+                    <div class="portfolio-value" id="totalValue">$12,450</div>
                 </div>
-                <div class="summary-card" id="pnlSummary">
-                    <div class="summary-label">Total P&L</div>
-                    <div class="portfolio-pnl">$0.00 (0.0%)</div>
-                </div>
-                <div class="summary-card" id="positionsSummary">
-                    <div class="summary-label">Open Positions</div>
-                    <div class="positions-count">0</div>
-                </div>
-                <div class="summary-card" id="winsSummary">
-                    <div class="summary-label">Win Rate</div>
-                    <div class="win-rate">0%</div>
+                <div>
+                    <div class="text-muted">24h Change</div>
+                    <div class="portfolio-pnl positive" id="totalPnl">+24.5%</div>
                 </div>
             </div>
         </section>
 
-        <!-- Live Opportunities (Zaka's Advice) -->
-        <section class="opportunities-section">
+        <!-- ZAKA's Opportunities -->
+        <section class="alerts-section opportunities">
             <div class="section-header">
-                <h2>🎯 Zaka's Live Advice</h2>
-                <p class="section-note">Based on real-time analysis · You decide, we track</p>
+                <h2>🔥 ZAKA's Opportunities</h2>
+                <span class="section-note">AI-Powered</span>
             </div>
-            <div class="opportunities-grid" id="opportunitiesGrid">
-                <!-- Populated by JavaScript -->
-                <div class="loading-placeholder">Analyzing markets...</div>
+            <div class="opportunities-container" id="opportunities">
+                <!-- Populated by JS -->
             </div>
         </section>
 
-        <!-- Your Open Positions -->
-        <section class="positions-section">
+        <!-- Your Assets -->
+        <section>
             <div class="section-header">
-                <h2>📈 Your Open Positions</h2>
-                <p class="section-note">Demo trades · Mirror on Binance/Luno</p>
+                <h2>Your Assets</h2>
+                <span class="section-note">Holdings</span>
             </div>
-            <div class="positions-grid" id="positionsGrid">
-                <!-- Populated by JavaScript -->
-                <div class="empty-state">No open positions. Take a trade from Zaka's advice above!</div>
-            </div>
-        </section>
-
-        <!-- Trade History -->
-        <section class="history-section">
-            <div class="section-header">
-                <h2>📜 Trade History</h2>
-                <button class="clear-button" id="clearHistoryBtn">Clear History</button>
-            </div>
-            <div class="history-container">
-                <table class="history-table" id="historyTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Asset</th>
-                            <th>Action</th>
-                            <th>Entry</th>
-                            <th>Exit</th>
-                            <th>P&L</th>
-                            <th>Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody">
-                        <tr><td colspan="7" class="empty-history">No trade history yet</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Intelligence Feed (Alerts) -->
-        <section class="alerts-section">
-            <div class="section-header">
-                <h2>🔔 Intelligence Feed</h2>
-                <div class="alert-controls">
-                    <span class="alert-count" id="alertCount">0</span>
-                    <button class="clear-button" id="clearAlerts">Clear</button>
+            <div class="card-grid" id="portfolioGrid">
+                <!-- Populated by JS -->
+                <div class="portfolio-card loading" id="loadingCard">
+                    <div class="loading-spinner"></div>
+                    <p style="text-align: center; margin-top: 1rem;">Loading assets...</p>
                 </div>
-            </div>
-            <div class="alerts-container">
-                <ul class="alert-list" id="alertList">
-                    <li class="alert-placeholder">Zaka is analyzing markets...</li>
-                </ul>
             </div>
         </section>
 
         <!-- Quick Actions -->
         <section class="actions-section">
+            <div class="section-header">
+                <h2>Quick Actions</h2>
+            </div>
             <div class="actions-grid">
-                <button class="action-button" id="manualBuyBtn">💰 Manual Buy</button>
-                <button class="action-button" id="manualSellBtn">💸 Manual Sell</button>
-                <button class="action-button" id="exportDataBtn">📊 Export Data</button>
-                <button class="action-button" id="viewStrategyBtn">📋 How Zaka Thinks</button>
+                <button class="action-button" onclick="showBuySell('BTC')">Buy Bitcoin</button>
+                <button class="action-button" onclick="showBuySell('ETH')">Buy Ethereum</button>
+                <button class="action-button" onclick="showSearch()">Search Assets</button>
+                <button class="action-button" onclick="showHistory()">History</button>
+            </div>
+        </section>
+
+        <!-- Alerts & Notifications -->
+        <section class="alerts-section">
+            <div class="section-header">
+                <h2>🔔 Notifications</h2>
+                <div class="alert-controls">
+                    <span class="alert-count" id="alertCount">3 new</span>
+                    <button class="clear-button" onclick="clearAlerts()">Clear</button>
+                </div>
+            </div>
+            <div class="alerts-container">
+                <ul class="alert-list" id="alertList">
+                    <!-- Populated by JS -->
+                </ul>
             </div>
         </section>
     </main>
@@ -151,87 +121,59 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-container">
-            <p class="copyright">© 2026 ThinkingZaka · Mirror Trading Assistant</p>
-            <p class="disclaimer">Zaka advises · You decide · Mirror on Binance/Luno</p>
-            <a href="#" class="install-link" id="installPWA" style="display: none;">📱 Install App</a>
+            <div>ZAKA v1.0 · Smart Trading Companion</div>
+            <div>
+                <span id="btcPrice">BTC: $67,890</span> · 
+                <span id="ethPrice">ETH: $3,245</span>
+            </div>
+            <div>
+                <a href="#" class="install-link" onclick="showInstallModal()">📲 Install App</a>
+            </div>
         </div>
     </footer>
 
-    <!-- Buy Modal (when you click BUY on an opportunity) -->
-    <div class="modal" id="buyModal">
+    <!-- Buy/Sell Modal -->
+    <div class="modal" id="tradeModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Execute Trade</h2>
-                <button class="modal-close" id="closeBuyModal">&times;</button>
+                <h3 id="modalTitle">Buy Bitcoin</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
             </div>
-            <div class="modal-body" id="buyModalBody">
-                <!-- Populated by JavaScript -->
+            <div class="modal-body" id="modalBody">
+                <!-- Populated by JS -->
             </div>
         </div>
     </div>
 
-    <!-- Sell Modal (when you click SELL on a position) -->
-    <div class="modal" id="sellModal">
+    <!-- Search Modal -->
+    <div class="modal" id="searchModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Close Position</h2>
-                <button class="modal-close" id="closeSellModal">&times;</button>
-            </div>
-            <div class="modal-body" id="sellModalBody">
-                <!-- Populated by JavaScript -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Strategy Modal -->
-    <div class="modal" id="strategyModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>How Zaka Thinks</h2>
-                <button class="modal-close" id="closeStrategyModal">&times;</button>
+                <h3>Search Assets</h3>
+                <button class="modal-close" onclick="closeModal('searchModal')">×</button>
             </div>
             <div class="modal-body">
-                <h3>📊 Technical Analysis (40%)</h3>
-                <ul>
-                    <li><strong>RSI:</strong> Overbought (>70) → Sell signal · Oversold (<30) → Buy signal</li>
-                    <li><strong>Support/Resistance:</strong> Bounces → Buy · Breaks → Sell</li>
-                    <li><strong>Moving Averages:</strong> Price above 50MA → Bullish · Below → Bearish</li>
-                    <li><strong>Volume:</strong> Increasing volume confirms moves</li>
-                </ul>
-                
-                <h3>📰 News Sentiment (30%)</h3>
-                <ul>
-                    <li><strong>Positive news:</strong> Product launches, partnerships, earnings beats → Bullish</li>
-                    <li><strong>Negative news:</strong> Hacks, regulations, missed earnings → Bearish</li>
-                    <li><strong>Social volume:</strong> Trending discussions → Momentum indicator</li>
-                </ul>
-                
-                <h3>🌍 Macro Context (20%)</h3>
-                <ul>
-                    <li><strong>Fed moves:</strong> Rate cuts → Risk-on (crypto/stocks up, gold down)</li>
-                    <li><strong>Dollar index:</strong> Dollar down → Gold/commodities up</li>
-                    <li><strong>Geopolitics:</strong> Tensions → Gold up, risk assets down</li>
-                </ul>
-                
-                <h3>📈 Relative Value (10%)</h3>
-                <ul>
-                    <li><strong>BTC dominance:</strong> Rising → Altcoins may underperform</li>
-                    <li><strong>Sector rotation:</strong> Money moving between tech/crypto/commodities</li>
-                </ul>
-                
-                <h3>Confidence Scoring</h3>
-                <ul>
-                    <li><strong>🔥 HIGH (3+ signals):</strong> Multiple factors aligned - strong setup</li>
-                    <li><strong>📊 MEDIUM (2 signals):</strong> Interesting but needs confirmation</li>
-                    <li><strong>👀 LOW (1 signal):</strong> Just a heads-up, DYOR</li>
-                </ul>
-                
-                <p class="modal-note">Zaka advises · You decide · Mirror on real exchanges</p>
+                <input type="text" class="search-input" id="searchInput" placeholder="Type to search..." onkeyup="searchAssets()">
+                <div id="searchResults" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Transaction History</h3>
+                <button class="modal-close" onclick="closeModal('historyModal')">×</button>
+            </div>
+            <div class="modal-body" id="historyBody">
+                <!-- Populated by JS -->
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
+    <script src="ws.js"></script>
     <script src="app.js"></script>
 </body>
     </html>
