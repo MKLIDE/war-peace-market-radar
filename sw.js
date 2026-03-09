@@ -1,28 +1,31 @@
-// sw.js - Add to your existing service worker
+const CACHE_NAME = 'thinkingzaka-v1';
+const urlsToCache = [
+    '/',
+    '/index.html',
+    '/style.css',
+    '/app.js',
+    '/manifest.json'
+];
 
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    
+self.addEventListener('install', event => {
     event.waitUntil(
-        clients.openWindow('/')
+        caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(urlsToCache))
     );
 });
 
-self.addEventListener('sync', (event) => {
-    if (event.tag === 'market-update') {
-        event.waitUntil(
-            clients.matchAll().then(clients => {
-                clients.forEach(client => {
-                    client.postMessage({ type: 'REFRESH' });
-                });
-            })
-        );
-    }
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        caches.match(event.request)
+            .then(response => response || fetch(event.request))
+    );
 });
 
-self.addEventListener('message', (event) => {
-    if (event.data.type === 'UPDATE') {
-        // Cache latest data
-        self.lastUpdate = event.data.data;
-    }
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(keys => Promise.all(
+            keys.filter(key => key !== CACHE_NAME)
+                .map(key => caches.delete(key))
+        ))
+    );
 });
