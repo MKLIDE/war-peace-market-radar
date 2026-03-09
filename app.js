@@ -1,237 +1,352 @@
 // ========================================
-// ThinkingZaka - Complete Strategy Implementation
-// War vs Peace Portfolio · March 2026
-// Mock data first, API updates in background
+// ThinkingZaka - Smart Portfolio Manager v4.0
+// Multi-API with fallbacks · Intelligent Alerts · Risk Management
 // ========================================
 
-// API Configuration
+// API Keys
 const TWELVE_DATA_KEY = "ac655a25fb294fc7b46e65acfaa3eca4";
 const ALPHA_API_KEY = "75IQNS7TVU6Z7WR6";
+const NEWS_API_KEY = "pub_65082ebc2f7a1939f4ed39ecc812dd180f3f6"; // Free tier from NewsData.io
 
-// Complete Asset Configuration - EXPANDED
-const assets = [
-    // ===== WAR PORTFOLIO =====
-    // Defense, Safe Haven, Commodities
-    { 
-        key: 'btc', id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', 
-        category: 'war', type: 'crypto', source: 'coingecko',
-        entry: [63000, 65000], support: 60000, target: 73000, stop: 0.10,
-        mockPrice: 67800
+// ========================================
+// YOUR PORTFOLIO - Easy to add/remove
+// Just modify this array
+// ========================================
+
+const portfolio = [
+    // ===== CRYPTOCURRENCIES =====
+    {
+        id: 'btc',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        type: 'crypto',
+        coingecko_id: 'bitcoin',
+        twelve_symbol: 'BTC/USD',
+        quantity: 0.5,        // Your holdings
+        avgEntry: 64500,       // Your average entry
+        stopLoss: 0.10,        // 10% stop loss
+        takeProfit: 0.25,      // 25% take profit
+        priority: 1,           // Higher priority = more frequent updates
+        news_keywords: 'bitcoin btc cryptocurrency'
     },
-    { 
-        key: 'eth', id: 'ethereum', symbol: 'ETH', name: 'Ethereum', 
-        category: 'war', type: 'crypto', source: 'coingecko',
-        entry: [3200, 3400], support: 3000, target: 4000, stop: 0.12,
-        mockPrice: 3350
+    {
+        id: 'eth',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        type: 'crypto',
+        coingecko_id: 'ethereum',
+        twelve_symbol: 'ETH/USD',
+        quantity: 5,
+        avgEntry: 3200,
+        stopLoss: 0.12,
+        takeProfit: 0.30,
+        priority: 1,
+        news_keywords: 'ethereum eth crypto'
     },
-    { 
-        key: 'gold', id: 'XAUUSD', symbol: 'GOLD', name: 'Gold', 
-        category: 'war', type: 'forex', source: 'twelve',
-        entry: [4805, 5000], support: 4780, target: 6000, stop: 0.05,
-        mockPrice: 4850
+    {
+        id: 'sol',
+        symbol: 'SOL',
+        name: 'Solana',
+        type: 'crypto',
+        coingecko_id: 'solana',
+        twelve_symbol: 'SOL/USD',
+        quantity: 100,
+        avgEntry: 80,
+        stopLoss: 0.15,
+        takeProfit: 0.40,
+        priority: 1,
+        news_keywords: 'solana sol crypto'
     },
-    { 
-        key: 'oil', id: 'CL', symbol: 'OIL', name: 'Crude Oil', 
-        category: 'war', type: 'commodity', source: 'twelve',
-        entry: [75, 78], support: 72, target: 90, stop: 0.08,
-        mockPrice: 76.50
+    {
+        id: 'link',
+        symbol: 'LINK',
+        name: 'Chainlink',
+        type: 'crypto',
+        coingecko_id: 'chainlink',
+        twelve_symbol: 'LINK/USD',
+        quantity: 500,
+        avgEntry: 18.50,
+        stopLoss: 0.12,
+        takeProfit: 0.35,
+        priority: 2,
+        news_keywords: 'chainlink link oracle'
     },
-    { 
-        key: 'pltr', id: 'PLTR', symbol: 'PLTR', name: 'Palantir', 
-        category: 'war', type: 'stock', source: 'twelve',
-        entry: [142, 148], support: 136, target: 186, stop: 0.10,
-        mockPrice: 145.50
+
+    // ===== US STOCKS =====
+    {
+        id: 'nvda',
+        symbol: 'NVDA',
+        name: 'NVIDIA',
+        type: 'stock',
+        twelve_symbol: 'NVDA',
+        alpha_symbol: 'NVDA',
+        quantity: 10,
+        avgEntry: 825,
+        stopLoss: 0.08,
+        takeProfit: 0.20,
+        priority: 1,
+        news_keywords: 'nvidia nvda ai semiconductor'
     },
-    
-    // ===== PEACE PORTFOLIO =====
-    // Growth, Technology, Risk-On
-    { 
-        key: 'qqq', id: 'QQQ', symbol: 'QQQ', name: 'Nasdaq', 
-        category: 'peace', type: 'stock', source: 'twelve',
-        entry: [595, 603], support: 585, target: 616, stop: 0.08,
-        mockPrice: 599.75
+    {
+        id: 'msft',
+        symbol: 'MSFT',
+        name: 'Microsoft',
+        type: 'stock',
+        twelve_symbol: 'MSFT',
+        alpha_symbol: 'MSFT',
+        quantity: 15,
+        avgEntry: 410,
+        stopLoss: 0.07,
+        takeProfit: 0.15,
+        priority: 2,
+        news_keywords: 'microsoft msft azure ai'
     },
-    { 
-        key: 'sol', id: 'solana', symbol: 'SOL', name: 'Solana', 
-        category: 'peace', type: 'crypto', source: 'coingecko',
-        entry: [78, 81], support: 76, target: 101, stop: 0.15,
-        mockPrice: 82.50
+    {
+        id: 'goog',
+        symbol: 'GOOGL',
+        name: 'Google',
+        type: 'stock',
+        twelve_symbol: 'GOOGL',
+        alpha_symbol: 'GOOGL',
+        quantity: 20,
+        avgEntry: 165,
+        stopLoss: 0.08,
+        takeProfit: 0.18,
+        priority: 2,
+        news_keywords: 'google alphabet ai'
     },
-    { 
-        key: 'link', id: 'chainlink', symbol: 'LINK', name: 'Chainlink', 
-        category: 'peace', type: 'crypto', source: 'coingecko',
-        entry: [18, 20], support: 16, target: 28, stop: 0.12,
-        mockPrice: 19.25
+    {
+        id: 'pltr',
+        symbol: 'PLTR',
+        name: 'Palantir',
+        type: 'stock',
+        twelve_symbol: 'PLTR',
+        alpha_symbol: 'PLTR',
+        quantity: 100,
+        avgEntry: 145,
+        stopLoss: 0.10,
+        takeProfit: 0.25,
+        priority: 2,
+        news_keywords: 'palantir pltr data analytics'
     },
-    { 
-        key: 'nvda', id: 'NVDA', symbol: 'NVDA', name: 'NVIDIA', 
-        category: 'peace', type: 'stock', source: 'twelve',
-        entry: [820, 850], support: 780, target: 1000, stop: 0.08,
-        mockPrice: 835.50
+    {
+        id: 'qqq',
+        symbol: 'QQQ',
+        name: 'Nasdaq ETF',
+        type: 'etf',
+        twelve_symbol: 'QQQ',
+        alpha_symbol: 'QQQ',
+        quantity: 50,
+        avgEntry: 595,
+        stopLoss: 0.08,
+        takeProfit: 0.12,
+        priority: 3,
+        news_keywords: 'nasdaq qqq tech stocks'
     },
-    { 
-        key: 'msft', id: 'MSFT', symbol: 'MSFT', name: 'Microsoft', 
-        category: 'peace', type: 'stock', source: 'twelve',
-        entry: [410, 420], support: 395, target: 480, stop: 0.07,
-        mockPrice: 415.25
+
+    // ===== COMMODITIES =====
+    {
+        id: 'gold',
+        symbol: 'GOLD',
+        name: 'Gold',
+        type: 'commodity',
+        twelve_symbol: 'XAU/USD',
+        alpha_symbol: 'XAUUSD',
+        quantity: 10, // ounces
+        avgEntry: 2350,
+        stopLoss: 0.05,
+        takeProfit: 0.15,
+        priority: 2,
+        news_keywords: 'gold precious metals inflation'
     },
-    { 
-        key: 'goog', id: 'GOOGL', symbol: 'GOOG', name: 'Google', 
-        category: 'peace', type: 'stock', source: 'twelve',
-        entry: [165, 170], support: 158, target: 200, stop: 0.08,
-        mockPrice: 167.80
+    {
+        id: 'oil',
+        symbol: 'OIL',
+        name: 'Crude Oil',
+        type: 'commodity',
+        twelve_symbol: 'CL',
+        alpha_symbol: 'CL',
+        quantity: 100, // barrels
+        avgEntry: 75,
+        stopLoss: 0.08,
+        takeProfit: 0.20,
+        priority: 3,
+        news_keywords: 'oil crude energy wti'
     }
 ];
 
 // ========================================
-// State Management
+// Core State Management
 // ========================================
 
 const state = {
-    prices: {},
-    history: {},
-    entries: {},
-    lastFetch: {},
-    alphaCalls: 0,
-    lastReset: new Date().toDateString(),
-    cycleCount: 0,
-    portfolio: { war: 100000, peace: 100000, cash: 50000 }, // $250k total
-    dataSources: { twelve: 0, coingecko: 0, alpha: 0 }
+    prices: {},           // Current prices
+    changes: {},          // 24h changes
+    history: {},          // Price history for RSI
+    positions: {},        // Current position values
+    alerts: [],           // Active alerts
+    lastFetch: {},        // Last fetch timestamps
+    apiStats: {           // Track which APIs work
+        twelve: { success: 0, fail: 0 },
+        coingecko: { success: 0, fail: 0 },
+        alpha: { success: 0, fail: 0 }
+    },
+    portfolio: {
+        totalValue: 0,
+        totalCost: 0,
+        totalPnL: 0,
+        dailyPnL: 0,
+        biggestWinner: null,
+        biggestLoser: null
+    }
 };
 
-// Initialize history with mock data
-assets.forEach(asset => { 
-    state.prices[asset.key] = asset.mockPrice;
-    state.history[asset.key] = [asset.mockPrice * 0.98, asset.mockPrice * 0.99, asset.mockPrice]; 
+// Initialize history arrays
+portfolio.forEach(asset => { 
+    state.history[asset.id] = []; 
+    // Pre-fill with mock data for immediate display
+    for (let i = 0; i < 20; i++) {
+        state.history[asset.id].push(asset.avgEntry * (0.95 + (Math.random() * 0.1)));
+    }
 });
 
 // ========================================
-// Utility Functions
+// Multi-API Fetcher - Tries everything until success
 // ========================================
 
-function addAlert(text, type = 'info') {
-    const list = document.getElementById('alertList');
-    if (!list) return;
+async function fetchWithFallback(asset) {
+    const errors = [];
     
-    // Remove placeholder if it exists
-    if (list.children.length === 1 && list.children[0].classList.contains('alert-placeholder')) {
-        list.innerHTML = '';
-    }
-    
-    const li = document.createElement('li');
-    li.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
-    
-    // Color code alerts
-    if (type === 'buy') li.style.borderLeftColor = '#00ff9c';
-    if (type === 'sell') li.style.borderLeftColor = '#ff4d4d';
-    if (type === 'warning') li.style.borderLeftColor = '#ffd700';
-    
-    list.prepend(li);
-    
-    // Keep only last 20 alerts
-    while (list.children.length > 20) {
-        list.removeChild(list.lastChild);
-    }
-}
-
-async function fetchJSON(url, retries = 2) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-            
-            const res = await fetch(url, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return await res.json();
-        } catch (error) {
-            if (i === retries - 1) throw error;
-            await new Promise(r => setTimeout(r, 2000));
-        }
-    }
-}
-
-// ========================================
-// API Fetching with Twelve Data (YOUR KEY)
-// ========================================
-
-async function fetchTwelveData(symbol) {
+    // Try Twelve Data first (fastest, most reliable)
     try {
-        state.dataSources.twelve++;
-        const url = `https://api.twelvedata.com/price?symbol=${symbol}&apikey=${TWELVE_DATA_KEY}`;
-        const data = await fetchJSON(url);
-        return parseFloat(data.price) || 0;
-    } catch (error) {
-        console.log(`Twelve Data error for ${symbol}:`, error);
-        return 0;
-    }
-}
-
-async function fetchCoinGecko(id) {
-    try {
-        state.dataSources.coingecko++;
-        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`;
-        const data = await fetchJSON(url);
-        return data[id]?.usd || 0;
-    } catch (error) {
-        console.log(`CoinGecko error for ${id}:`, error);
-        return 0;
-    }
-}
-
-// ========================================
-// Price Fetching - Mock First, API Updates Later
-// ========================================
-
-async function fetchPrice(asset) {
-    const now = Date.now();
-    
-    // Check cache (5 minutes)
-    if (state.lastFetch[asset.key] && now - state.lastFetch[asset.key] < 300000) {
-        return state.prices[asset.key];
-    }
-    
-    console.log(`Fetching ${asset.key}...`);
-    
-    try {
-        let price = 0;
+        const url = `https://api.twelvedata.com/price?symbol=${asset.twelve_symbol}&apikey=${TWELVE_DATA_KEY}&dp=2`;
+        const response = await fetchWithTimeout(url, 5000);
+        const data = await response.json();
         
-        // Try real API based on source
-        if (asset.source === 'twelve') {
-            price = await fetchTwelveData(asset.id);
-        } else if (asset.source === 'coingecko') {
-            price = await fetchCoinGecko(asset.id);
-        }
-        
-        // If API succeeded, update
-        if (price > 0) {
-            state.prices[asset.key] = price;
-            state.lastFetch[asset.key] = now;
-            state.history[asset.key].push(price);
-            if (state.history[asset.key].length > 20) {
-                state.history[asset.key].shift();
-            }
-            console.log(`✅ ${asset.key} updated to $${price}`);
-            return price;
+        if (data.price && parseFloat(data.price) > 0) {
+            state.apiStats.twelve.success++;
+            return parseFloat(data.price);
         } else {
-            // Keep mock price
-            console.log(`⚠️ Using mock data for ${asset.key}`);
-            return state.prices[asset.key] || asset.mockPrice;
+            state.apiStats.twelve.fail++;
+            errors.push('Twelve Data: no price');
         }
-        
-    } catch (error) {
-        console.error(`Error fetching ${asset.key}:`, error);
-        return state.prices[asset.key] || asset.mockPrice;
+    } catch (e) {
+        state.apiStats.twelve.fail++;
+        errors.push(`Twelve Data: ${e.message}`);
     }
+    
+    // Try CoinGecko for crypto
+    if (asset.type === 'crypto') {
+        try {
+            const url = `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coingecko_id}&vs_currencies=usd`;
+            const response = await fetchWithTimeout(url, 5000);
+            const data = await response.json();
+            
+            if (data[asset.coingecko_id]?.usd) {
+                state.apiStats.coingecko.success++;
+                return data[asset.coingecko_id].usd;
+            } else {
+                state.apiStats.coingecko.fail++;
+                errors.push('CoinGecko: no price');
+            }
+        } catch (e) {
+            state.apiStats.coingecko.fail++;
+            errors.push(`CoinGecko: ${e.message}`);
+        }
+    }
+    
+    // Try Alpha Vantage as last resort
+    try {
+        const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${asset.alpha_symbol || asset.symbol}&apikey=${ALPHA_API_KEY}`;
+        const response = await fetchWithTimeout(url, 5000);
+        const data = await response.json();
+        
+        if (data['Global Quote']?.['05. price']) {
+            state.apiStats.alpha.success++;
+            return parseFloat(data['Global Quote']['05. price']);
+        } else {
+            state.apiStats.alpha.fail++;
+            errors.push('Alpha: no price');
+        }
+    } catch (e) {
+        state.apiStats.alpha.fail++;
+        errors.push(`Alpha: ${e.message}`);
+    }
+    
+    // If all APIs fail, return null
+    console.warn(`All APIs failed for ${asset.symbol}:`, errors);
+    return null;
+}
+
+// Fetch with timeout
+async function fetchWithTimeout(url, timeout = 5000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        throw error;
+    }
+}
+
+// ========================================
+// News Fetching - For sentiment analysis
+// ========================================
+
+async function fetchNews(asset) {
+    if (!asset.news_keywords) return [];
+    
+    try {
+        // Using NewsData.io free tier
+        const url = `https://newsdata.io/api/1/news?apikey=${NEWS_API_KEY}&q=${encodeURIComponent(asset.news_keywords)}&language=en&size=3`;
+        const response = await fetchWithTimeout(url, 4000);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            return data.results.map(article => ({
+                title: article.title,
+                source: article.source_id,
+                sentiment: analyzeSentiment(article.title + ' ' + (article.description || '')),
+                url: article.link
+            }));
+        }
+    } catch (e) {
+        console.log(`News fetch failed for ${asset.symbol}:`, e.message);
+    }
+    return [];
+}
+
+// Simple sentiment analysis (can be enhanced)
+function analyzeSentiment(text) {
+    const positiveWords = ['surge', 'rally', 'gain', 'bull', 'upgrade', 'buy', 'growth', 'profit', 'beat'];
+    const negativeWords = ['plunge', 'crash', 'loss', 'bear', 'downgrade', 'sell', 'risk', 'warning', 'miss'];
+    
+    const lowerText = text.toLowerCase();
+    let score = 0;
+    
+    positiveWords.forEach(word => {
+        if (lowerText.includes(word)) score += 1;
+    });
+    
+    negativeWords.forEach(word => {
+        if (lowerText.includes(word)) score -= 1;
+    });
+    
+    if (score > 2) return 'positive';
+    if (score < -2) return 'negative';
+    return 'neutral';
 }
 
 // ========================================
 // Technical Analysis
 // ========================================
 
-function calculateRSI(key, currentPrice) {
-    const history = state.history[key] || [];
+function calculateRSI(assetId, currentPrice) {
+    const history = state.history[assetId] || [];
     if (history.length < 14) return 50;
     
     let gains = 0, losses = 0;
@@ -251,221 +366,318 @@ function calculateRSI(key, currentPrice) {
     return 100 - (100 / (1 + rs));
 }
 
-function analyzeAsset(asset, price) {
-    if (!price) return null;
+function calculateVolatility(assetId) {
+    const history = state.history[assetId] || [];
+    if (history.length < 10) return 0;
     
-    const inZone = price >= asset.entry[0] && price <= asset.entry[1];
-    const nearSupport = price <= asset.support * 1.02;
-    const rsi = calculateRSI(asset.key, price);
-    const isOverbought = rsi > 70;
-    const isOversold = rsi < 30;
-    
-    // Check pullback
-    const history = state.history[asset.key] || [];
-    let isPullback = false;
-    if (history.length >= 5) {
-        const recentHigh = Math.max(...history.slice(-5));
-        isPullback = recentHigh > price * 1.03;
+    const returns = [];
+    for (let i = 1; i < history.length; i++) {
+        returns.push((history[i] - history[i-1]) / history[i-1]);
     }
     
-    const targetDistance = ((asset.target - price) / price * 100).toFixed(1);
+    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+    const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / returns.length;
+    return Math.sqrt(variance) * 100; // Daily volatility as percentage
+}
+
+// ========================================
+// Risk & Opportunity Detection
+// ========================================
+
+async function analyzeAsset(asset, currentPrice) {
+    if (!currentPrice || currentPrice <= 0) return null;
     
-    // Entry logic
-    let signal = null;
+    const analysis = {
+        asset: asset.symbol,
+        price: currentPrice,
+        timestamp: Date.now(),
+        risks: [],
+        opportunities: [],
+        alerts: []
+    };
     
-    if (inZone && isPullback && !isOverbought) {
-        signal = { type: 'BUY', reason: 'Pullback in zone', confidence: 'HIGH' };
-    }
-    else if (inZone && !isOverbought && rsi < 60) {
-        signal = { type: 'WATCH', reason: 'In zone', confidence: 'MEDIUM' };
-    }
-    else if (nearSupport && isOversold) {
-        signal = { type: 'WATCH', reason: 'Near support', confidence: 'MEDIUM' };
+    // Update history
+    state.history[asset.id].push(currentPrice);
+    if (state.history[asset.id].length > 50) {
+        state.history[asset.id].shift();
     }
     
-    // Stop loss check
-    if (state.entries[asset.key]) {
-        const loss = (state.entries[asset.key] - price) / state.entries[asset.key];
-        if (loss > asset.stop) {
-            signal = { type: 'STOP', reason: `${(loss*100).toFixed(1)}% loss`, confidence: 'HIGH' };
+    // Calculate metrics
+    const rsi = calculateRSI(asset.id, currentPrice);
+    const volatility = calculateVolatility(asset.id);
+    const dayChange = state.history[asset.id].length > 1 
+        ? ((currentPrice - state.history[asset.id][state.history[asset.id].length - 2]) / state.history[asset.id][state.history[asset.id].length - 2] * 100).toFixed(2)
+        : 0;
+    
+    // Position P&L
+    const positionValue = currentPrice * asset.quantity;
+    const costBasis = asset.avgEntry * asset.quantity;
+    const pnl = ((currentPrice - asset.avgEntry) / asset.avgEntry * 100).toFixed(2);
+    const pnlAbsolute = (currentPrice - asset.avgEntry) * asset.quantity;
+    
+    // Update portfolio totals
+    state.portfolio.totalValue += positionValue;
+    state.portfolio.totalCost += costBasis;
+    
+    // ===== RISK DETECTION =====
+    
+    // 1. Stop Loss Check
+    if (asset.avgEntry && currentPrice < asset.avgEntry * (1 - asset.stopLoss)) {
+        analysis.risks.push({
+            type: 'STOP_LOSS',
+            severity: 'HIGH',
+            message: `${asset.symbol} hit stop loss: ${((asset.avgEntry - currentPrice) / asset.avgEntry * 100).toFixed(1)}% down from entry`,
+            value: currentPrice,
+            threshold: asset.avgEntry * (1 - asset.stopLoss)
+        });
+    }
+    
+    // 2. Overbought/Oversold
+    if (rsi > 75) {
+        analysis.risks.push({
+            type: 'OVERBOUGHT',
+            severity: 'MEDIUM',
+            message: `${asset.symbol} overbought (RSI ${rsi.toFixed(0)}) - potential pullback`,
+            value: rsi,
+            threshold: 75
+        });
+    } else if (rsi < 25) {
+        analysis.opportunities.push({
+            type: 'OVERSOLD',
+            confidence: 'HIGH',
+            message: `${asset.symbol} oversold (RSI ${rsi.toFixed(0)}) - potential bounce`,
+            value: rsi,
+            threshold: 25
+        });
+    }
+    
+    // 3. High Volatility
+    if (volatility > 5) {
+        analysis.risks.push({
+            type: 'HIGH_VOLATILITY',
+            severity: 'MEDIUM',
+            message: `${asset.symbol} volatility at ${volatility.toFixed(1)}% - higher risk`,
+            value: volatility,
+            threshold: 5
+        });
+    }
+    
+    // 4. Large Daily Drop
+    if (dayChange < -5) {
+        analysis.risks.push({
+            type: 'SHARP_DROP',
+            severity: 'HIGH',
+            message: `${asset.symbol} dropped ${dayChange}% today`,
+            value: dayChange,
+            threshold: -5
+        });
+    }
+    
+    // ===== OPPORTUNITY DETECTION =====
+    
+    // 1. Take Profit
+    if (asset.avgEntry && currentPrice > asset.avgEntry * (1 + asset.takeProfit)) {
+        analysis.opportunities.push({
+            type: 'TAKE_PROFIT',
+            confidence: 'HIGH',
+            message: `${asset.symbol} hit take profit target: +${pnl}%`,
+            value: currentPrice,
+            threshold: asset.avgEntry * (1 + asset.takeProfit)
+        });
+    }
+    
+    // 2. Golden Cross (simplified - 50 day above 200 day)
+    if (state.history[asset.id].length > 50) {
+        const ma50 = state.history[asset.id].slice(-50).reduce((a, b) => a + b, 0) / 50;
+        if (currentPrice > ma50 * 1.1) {
+            analysis.opportunities.push({
+                type: 'STRONG_TREND',
+                confidence: 'MEDIUM',
+                message: `${asset.symbol} trading 10% above 50-day MA - strong uptrend`,
+                value: ((currentPrice / ma50 - 1) * 100).toFixed(1),
+                threshold: 10
+            });
         }
     }
     
-    return {
-        price,
-        inZone,
-        rsi: Math.round(rsi),
-        isOverbought,
-        isOversold,
-        isPullback,
-        targetDistance,
-        signal
+    // 3. RSI Reversal
+    if (rsi < 30 && dayChange > 2) {
+        analysis.opportunities.push({
+            type: 'RSI_REVERSAL',
+            confidence: 'HIGH',
+            message: `${asset.symbol} showing reversal from oversold: +${dayChange}% today`,
+            value: rsi,
+            threshold: 30
+        });
+    }
+    
+    // Store position data
+    state.positions[asset.id] = {
+        price: currentPrice,
+        pnl: parseFloat(pnl),
+        pnlAbsolute: pnlAbsolute,
+        value: positionValue,
+        rsi: rsi,
+        volatility: volatility,
+        dayChange: dayChange
     };
+    
+    return analysis;
+}
+
+// ========================================
+// Alert Generation
+// ========================================
+
+function generateAlerts(analysis) {
+    if (!analysis) return;
+    
+    // Check for new risks (not alerted recently)
+    analysis.risks.forEach(risk => {
+        const alertKey = `${analysis.asset}_${risk.type}_${Date.now()}`;
+        const lastAlert = localStorage.getItem(`alert_${analysis.asset}_${risk.type}`);
+        
+        if (!lastAlert || Date.now() - parseInt(lastAlert) > 3600000) { // Once per hour
+            addAlert(`⚠️ RISK: ${risk.message}`, 'risk');
+            localStorage.setItem(`alert_${analysis.asset}_${risk.type}`, Date.now().toString());
+            
+            // Send notification for high severity
+            if (risk.severity === 'HIGH' && Notification.permission === 'granted') {
+                new Notification(`🚨 Risk Alert: ${analysis.asset}`, {
+                    body: risk.message,
+                    icon: '/icons/icon-192.png'
+                });
+            }
+        }
+    });
+    
+    // Check for opportunities
+    analysis.opportunities.forEach(opp => {
+        const alertKey = `${analysis.asset}_${opp.type}_${Date.now()}`;
+        const lastAlert = localStorage.getItem(`opp_${analysis.asset}_${opp.type}`);
+        
+        if (!lastAlert || Date.now() - parseInt(lastAlert) > 7200000) { // Once per 2 hours
+            addAlert(`🎯 OPPORTUNITY: ${opp.message}`, 'opportunity');
+            localStorage.setItem(`opp_${analysis.asset}_${opp.type}`, Date.now().toString());
+            
+            // Send notification for high confidence
+            if (opp.confidence === 'HIGH' && Notification.permission === 'granted') {
+                new Notification(`💎 Opportunity: ${analysis.asset}`, {
+                    body: opp.message,
+                    icon: '/icons/icon-192.png'
+                });
+            }
+        }
+    });
 }
 
 // ========================================
 // UI Rendering
 // ========================================
 
-function renderCard(asset) {
-    const price = state.prices[asset.key] || asset.mockPrice;
-    if (!price) return;
+function renderPortfolio() {
+    // Calculate totals
+    state.portfolio.totalValue = 0;
+    state.portfolio.totalCost = 0;
     
-    let card = document.getElementById(`card-${asset.key}`);
+    portfolio.forEach(asset => {
+        const price = state.prices[asset.id] || asset.avgEntry;
+        state.portfolio.totalValue += price * asset.quantity;
+        state.portfolio.totalCost += asset.avgEntry * asset.quantity;
+    });
     
-    // Determine which grid this belongs to
-    if (!card) {
-        let gridId = '';
-        if (asset.category === 'war') {
-            gridId = 'warPortfolio';
-        } else {
-            gridId = 'peacePortfolioUS';
-        }
-        
-        const grid = document.getElementById(gridId);
-        if (!grid) return;
-        
-        // Remove loading placeholder
-        const loadingEl = document.getElementById(`${asset.key}-loading`);
-        if (loadingEl) loadingEl.remove();
-        
-        card = document.createElement('div');
-        card.id = `card-${asset.key}`;
-        card.className = `card ${asset.category}`;
-        grid.appendChild(card);
-    }
+    state.portfolio.totalPnL = ((state.portfolio.totalValue - state.portfolio.totalCost) / state.portfolio.totalCost * 100).toFixed(2);
+    state.portfolio.dailyPnL = 0; // Would need yesterday's close
     
-    const analysis = analyzeAsset(asset, price);
-    
-    // Price change indicator
-    const history = state.history[asset.key] || [];
-    const prevPrice = history.length >= 2 ? history[history.length - 2] : price;
-    const arrow = price > prevPrice ? '↑' : (price < prevPrice ? '↓' : '→');
-    const priceClass = price > prevPrice ? 'up' : (price < prevPrice ? 'down' : '');
-    
-    // Generate alert for buy signals (throttled)
-    if (analysis?.signal?.type === 'BUY') {
-        const lastAlert = localStorage.getItem(`alert_${asset.key}`);
-        const now = Date.now();
-        if (!lastAlert || now - parseInt(lastAlert) > 3600000) {
-            addAlert(`${asset.symbol}: ${analysis.signal.reason} at $${price.toFixed(2)}`, 'buy');
-            localStorage.setItem(`alert_${asset.key}`, now.toString());
-        }
-    }
-    
-    // Format price display
-    let priceDisplay = '';
-    if (price > 1000) {
-        priceDisplay = `$${price.toFixed(0)}`;
-    } else if (price > 100) {
-        priceDisplay = `$${price.toFixed(2)}`;
-    } else if (price > 1) {
-        priceDisplay = `$${price.toFixed(2)}`;
-    } else {
-        priceDisplay = `$${price.toFixed(4)}`;
-    }
-    
-    // Signal badge HTML
-    let signalHtml = '';
-    if (analysis?.signal) {
-        let signalClass = '';
-        if (analysis.signal.type === 'BUY') signalClass = 'buy';
-        else if (analysis.signal.type === 'WATCH') signalClass = 'wait';
-        else if (analysis.signal.type === 'STOP') signalClass = 'stop';
-        
-        signalHtml = `
-            <div class="signal-badge ${signalClass}">
-                ${analysis.signal.reason} (${analysis.signal.confidence})
-            </div>
+    // Update portfolio summary
+    const summaryEl = document.getElementById('portfolioSummary');
+    if (summaryEl) {
+        const pnlClass = state.portfolio.totalPnL >= 0 ? 'positive' : 'negative';
+        summaryEl.innerHTML = `
+            <div class="portfolio-value">$${state.portfolio.totalValue.toFixed(2)}</div>
+            <div class="portfolio-pnl ${pnlClass}">${state.portfolio.totalPnL}% overall</div>
         `;
     }
     
+    // Render each asset card
+    portfolio.forEach(asset => renderCard(asset));
+}
+
+function renderCard(asset) {
+    const price = state.prices[asset.id] || asset.avgEntry;
+    const position = state.positions[asset.id] || {
+        pnl: 0,
+        pnlAbsolute: 0,
+        value: price * asset.quantity,
+        rsi: 50,
+        dayChange: 0
+    };
+    
+    let card = document.getElementById(`card-${asset.id}`);
+    
+    if (!card) {
+        const grid = document.getElementById('portfolioGrid');
+        if (!grid) return;
+        
+        card = document.createElement('div');
+        card.id = `card-${asset.id}`;
+        card.className = `portfolio-card`;
+        grid.appendChild(card);
+    }
+    
+    // Determine card color based on P&L
+    const pnlClass = position.pnl >= 0 ? 'profit' : 'loss';
+    
+    // Format price
+    let priceDisplay = price > 1000 ? `$${price.toFixed(0)}` : `$${price.toFixed(2)}`;
+    
     // RSI class
     let rsiClass = '';
-    if (analysis?.isOverbought) rsiClass = 'overbought';
-    else if (analysis?.isOversold) rsiClass = 'oversold';
+    if (position.rsi > 70) rsiClass = 'overbought';
+    else if (position.rsi < 30) rsiClass = 'oversold';
     
     card.innerHTML = `
         <div class="card-header">
             <span class="card-symbol">${asset.symbol}</span>
-            <span class="card-category ${asset.category}">${asset.category}</span>
+            <span class="card-type ${asset.type}">${asset.type}</span>
         </div>
-        <div class="card-price ${priceClass}">
-            ${priceDisplay} ${arrow}
+        <div class="card-price">
+            ${priceDisplay}
+            <span class="day-change ${position.dayChange >= 0 ? 'up' : 'down'}">
+                ${position.dayChange > 0 ? '+' : ''}${position.dayChange}%
+            </span>
         </div>
-        <div class="strategy-panel">
-            <div class="zone-row">
-                <span>Entry:</span> $${asset.entry[0].toLocaleString()} - $${asset.entry[1].toLocaleString()}
+        <div class="position-details">
+            <div class="position-row">
+                <span>Position:</span>
+                <span>${asset.quantity} @ $${asset.avgEntry}</span>
             </div>
-            <div class="zone-row">
-                <span>Target:</span> $${asset.target.toLocaleString()} (${analysis?.targetDistance || 0}%)
+            <div class="position-row">
+                <span>Value:</span>
+                <span>$${position.value.toFixed(2)}</span>
+            </div>
+            <div class="position-row ${pnlClass}">
+                <span>P&L:</span>
+                <span>${position.pnl > 0 ? '+' : ''}${position.pnl}% ($${position.pnlAbsolute.toFixed(2)})</span>
             </div>
             <div class="indicator-row">
-                <span class="rsi ${rsiClass}">
-                    RSI: ${analysis?.rsi || 50}
-                </span>
-                <span>${analysis?.isPullback ? 'Pullback' : 'Trending'}</span>
+                <span class="rsi ${rsiClass}">RSI: ${position.rsi.toFixed(0)}</span>
+                <span class="volatility">Vol: ${position.volatility?.toFixed(1) || 0}%</span>
             </div>
-            ${signalHtml}
         </div>
         <div class="card-footer">
-            <span>${state.lastFetch[asset.key] ? 'Live' : 'Mock'}</span>
+            <span>${state.lastFetch[asset.id] ? 'Live' : 'Estimate'}</span>
             <span>${new Date().toLocaleTimeString()}</span>
         </div>
     `;
 }
 
 // ========================================
-// Macro Regime Detection
+// Main Update Loop
 // ========================================
 
-function detectRegime() {
-    const warAssets = assets.filter(a => a.category === 'war');
-    const peaceAssets = assets.filter(a => a.category === 'peace');
-    
-    let warScore = 0;
-    let peaceScore = 0;
-    
-    // Check war assets against targets
-    warAssets.forEach(asset => {
-        const price = state.prices[asset.key] || 0;
-        if (price > asset.target * 0.95) warScore += 1;
-        if (price < asset.support) warScore += 2; // Fear = war bias
-    });
-    
-    // Check peace assets
-    peaceAssets.forEach(asset => {
-        const price = state.prices[asset.key] || 0;
-        if (price > asset.target * 0.95) peaceScore += 2;
-        if (price > asset.entry[1]) peaceScore += 1; // Breakout = peace bias
-    });
-    
-    // Calculate allocations
-    const totalPortfolio = state.portfolio.war + state.portfolio.peace + state.portfolio.cash;
-    const warPct = ((state.portfolio.war / totalPortfolio) * 100).toFixed(1);
-    const peacePct = ((state.portfolio.peace / totalPortfolio) * 100).toFixed(1);
-    
-    document.getElementById('allocationStatus').innerHTML = 
-        `${warPct}% War · ${peacePct}% Peace · 20% Cash`;
-    
-    document.getElementById('warScore').textContent = warScore;
-    document.getElementById('peaceScore').textContent = peaceScore;
-    
-    if (warScore > peaceScore + 2) {
-        return { text: 'WAR BIAS - Favor defense', class: 'war' };
-    } else if (peaceScore > warScore + 2) {
-        return { text: 'PEACE BIAS - Favor growth', class: 'peace' };
-    } else {
-        return { text: 'NEUTRAL - Balanced', class: 'neutral' };
-    }
-}
-
-// ========================================
-// Main Update - Mock First, API Later
-// ========================================
-
-async function updateMarket() {
-    console.log('🔄 Updating market data...');
+async function updatePortfolio() {
+    console.log('🔄 Updating portfolio...');
     
     const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) {
@@ -473,149 +685,171 @@ async function updateMarket() {
         refreshBtn.disabled = true;
     }
     
-    try {
-        // First pass: Use mock data immediately (already in state)
-        assets.forEach(asset => renderCard(asset));
+    // Reset portfolio totals
+    state.portfolio.totalValue = 0;
+    state.portfolio.totalCost = 0;
+    
+    // Update each asset based on priority
+    for (const asset of portfolio) {
+        // Fetch current price
+        const price = await fetchWithFallback(asset);
         
-        // Second pass: Fetch real data in background
-        setTimeout(async () => {
-            console.log('📡 Fetching live data...');
+        if (price && price > 0) {
+            state.prices[asset.id] = price;
+            state.lastFetch[asset.id] = Date.now();
             
-            // Fetch in parallel
-            const promises = assets.map(asset => fetchPrice(asset));
-            await Promise.allSettled(promises);
+            // Analyze for risks/opportunities
+            const analysis = await analyzeAsset(asset, price);
             
-            // Re-render with real data
-            assets.forEach(asset => renderCard(asset));
+            // Generate alerts
+            generateAlerts(analysis);
             
-            // Update regime
-            const regime = detectRegime();
-            const macroEl = document.getElementById('macroStatus');
-            if (macroEl) {
-                const regimeValue = macroEl.querySelector('.regime-value');
-                if (regimeValue) {
-                    regimeValue.textContent = regime.text;
-                    regimeValue.className = `regime-value ${regime.class}`;
+            // Fetch news in background (don't await)
+            fetchNews(asset).then(news => {
+                if (news.length > 0) {
+                    const sentiment = news[0].sentiment;
+                    if (sentiment === 'positive' && !state.positions[asset.id]?.lastNewsAlert) {
+                        addAlert(`📰 Positive news for ${asset.symbol}: ${news[0].title}`, 'info');
+                        state.positions[asset.id] = state.positions[asset.id] || {};
+                        state.positions[asset.id].lastNewsAlert = Date.now();
+                    }
                 }
-            }
-            
-            // Update timestamp
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-            
-            // Update connection status
-            const dot = document.querySelector('.dot');
-            if (dot) dot.style.background = '#00ff9c';
-            
-            console.log('✅ Live data loaded');
-            addAlert('Live data updated');
-            
-        }, 2000); // Delay to show mock first
-        
-    } catch (error) {
-        console.error('Update error:', error);
-    } finally {
-        if (refreshBtn) {
-            refreshBtn.textContent = 'Refresh';
-            refreshBtn.disabled = false;
+            });
         }
+        
+        // Update display
+        renderCard(asset);
     }
+    
+    // Update portfolio summary
+    renderPortfolio();
+    
+    // Update timestamp
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+    
+    // Update API stats
+    updateApiStats();
+    
+    if (refreshBtn) {
+        refreshBtn.textContent = 'Refresh';
+        refreshBtn.disabled = false;
+    }
+    
+    addAlert('Portfolio updated', 'info');
+}
+
+function updateApiStats() {
+    const statsEl = document.getElementById('apiStats');
+    if (!statsEl) return;
+    
+    const total = state.apiStats.twelve.success + state.apiStats.twelve.fail +
+                  state.apiStats.coingecko.success + state.apiStats.coingecko.fail +
+                  state.apiStats.alpha.success + state.apiStats.alpha.fail;
+    
+    const success = state.apiStats.twelve.success + state.apiStats.coingecko.success + state.apiStats.alpha.success;
+    
+    statsEl.innerHTML = `API: ${success}/${total} successful`;
 }
 
 // ========================================
-// Event Handlers
+// Alert Display
 // ========================================
 
-function recordEntry() {
-    const asset = prompt('Enter asset symbol (BTC, NVDA, etc):');
-    if (!asset) return;
+function addAlert(text, type = 'info') {
+    const list = document.getElementById('alertList');
+    if (!list) return;
     
-    const assetKey = asset.toLowerCase();
-    const assetData = assets.find(a => a.key === assetKey || a.symbol.toLowerCase() === assetKey);
+    // Remove placeholder if exists
+    if (list.children.length === 1 && list.children[0].classList.contains('alert-placeholder')) {
+        list.innerHTML = '';
+    }
     
-    if (!assetData) {
-        alert('Asset not found');
+    const li = document.createElement('li');
+    li.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+    
+    // Style based on type
+    if (type === 'risk') li.style.borderLeftColor = '#ff4d4d';
+    else if (type === 'opportunity') li.style.borderLeftColor = '#00ff9c';
+    else li.style.borderLeftColor = '#ffd700';
+    
+    list.prepend(li);
+    
+    // Keep last 30 alerts
+    while (list.children.length > 30) {
+        list.removeChild(list.lastChild);
+    }
+    
+    // Store in state
+    state.alerts.unshift({ text, type, timestamp: Date.now() });
+    if (state.alerts.length > 30) state.alerts.pop();
+}
+
+// ========================================
+// Manual Actions
+// ========================================
+
+function addPosition() {
+    const symbol = prompt('Enter symbol:');
+    if (!symbol) return;
+    
+    const asset = portfolio.find(a => a.symbol.toLowerCase() === symbol.toLowerCase());
+    if (!asset) {
+        alert('Asset not in portfolio');
         return;
     }
+    
+    const quantity = prompt('Enter quantity:');
+    if (!quantity) return;
     
     const price = prompt('Enter entry price:');
     if (!price) return;
     
-    const quantity = prompt('Enter quantity:');
-    if (!quantity) return;
+    asset.quantity += parseFloat(quantity);
+    // Update avg entry (weighted average)
+    const totalCost = (asset.avgEntry * asset.quantity) + (parseFloat(price) * parseFloat(quantity));
+    asset.quantity += parseFloat(quantity);
+    asset.avgEntry = totalCost / asset.quantity;
     
-    const priceNum = parseFloat(price);
-    const quantityNum = parseFloat(quantity);
-    
-    if (isNaN(priceNum) || isNaN(quantityNum)) {
-        alert('Invalid numbers');
-        return;
-    }
-    
-    state.entries[assetData.key] = priceNum;
-    state.portfolio[assetData.category] += priceNum * quantityNum;
-    state.portfolio.cash -= priceNum * quantityNum;
-    
-    addAlert(`Recorded ${assetData.symbol} entry: ${quantity} @ $${price}`, 'info');
+    addAlert(`Added ${quantity} ${asset.symbol} @ $${price}`, 'info');
+    renderPortfolio();
 }
 
-function recordExit() {
-    const asset = prompt('Enter asset symbol:');
-    if (!asset) return;
+function removePosition() {
+    const symbol = prompt('Enter symbol to sell:');
+    if (!symbol) return;
     
-    const assetKey = asset.toLowerCase();
-    const assetData = assets.find(a => a.key === assetKey || a.symbol.toLowerCase() === assetKey);
-    
-    if (!assetData) {
-        alert('Asset not found');
+    const asset = portfolio.find(a => a.symbol.toLowerCase() === symbol.toLowerCase());
+    if (!asset) {
+        alert('Asset not in portfolio');
         return;
     }
     
-    if (!state.entries[assetData.key]) {
-        alert('No entry recorded for this asset');
-        return;
-    }
+    const quantity = prompt('Enter quantity to sell:');
+    if (!quantity) return;
     
-    const price = prompt('Enter exit price:');
+    const price = prompt('Enter sale price:');
     if (!price) return;
     
-    const quantity = prompt('Enter quantity:');
-    if (!quantity) return;
-    
-    const priceNum = parseFloat(price);
-    const quantityNum = parseFloat(quantity);
-    const entryPrice = state.entries[assetData.key];
-    
-    if (isNaN(priceNum) || isNaN(quantityNum)) {
-        alert('Invalid numbers');
+    if (parseFloat(quantity) > asset.quantity) {
+        alert('Not enough shares');
         return;
     }
     
-    const pnl = ((priceNum - entryPrice) / entryPrice * 100).toFixed(1);
+    const pnl = ((parseFloat(price) - asset.avgEntry) / asset.avgEntry * 100).toFixed(2);
+    asset.quantity -= parseFloat(quantity);
     
-    state.portfolio[assetData.category] -= priceNum * quantityNum;
-    state.portfolio.cash += priceNum * quantityNum;
-    delete state.entries[assetData.key];
+    addAlert(`Sold ${quantity} ${asset.symbol} @ $${price} (${pnl}% P&L)`, pnl > 0 ? 'opportunity' : 'risk');
     
-    addAlert(`Exited ${assetData.symbol}: ${pnl}% P&L`, pnl > 0 ? 'buy' : 'sell');
-}
-
-function exportData() {
-    const data = {
-        prices: state.prices,
-        portfolio: state.portfolio,
-        entries: state.entries,
-        timestamp: new Date().toISOString()
-    };
+    if (asset.quantity === 0) {
+        // Option to remove from portfolio
+        if (confirm('Position closed. Remove from portfolio?')) {
+            const index = portfolio.indexOf(asset);
+            portfolio.splice(index, 1);
+            document.getElementById(`card-${asset.id}`)?.remove();
+        }
+    }
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `thinkingzaka-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    addAlert('Data exported successfully');
+    renderPortfolio();
 }
 
 // ========================================
@@ -623,80 +857,50 @@ function exportData() {
 // ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 ThinkingZaka initializing...');
+    console.log('🚀 ThinkingZaka Portfolio Manager initializing...');
     
-    // Initial render with mock data
-    assets.forEach(asset => renderCard(asset));
+    // Check notification permission
+    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
     
-    // Initial macro update
-    const regime = detectRegime();
-    const macroEl = document.getElementById('macroStatus');
-    if (macroEl) {
-        const regimeValue = macroEl.querySelector('.regime-value');
-        if (regimeValue) {
-            regimeValue.textContent = regime.text;
-            regimeValue.className = `regime-value ${regime.class}`;
+    // Initial render with estimated prices
+    renderPortfolio();
+    
+    // First update
+    setTimeout(() => updatePortfolio(), 1000);
+    
+    // Regular updates (every 5 minutes for high priority, 15 for others)
+    setInterval(() => updatePortfolio(), 300000);
+    
+    // Event listeners
+    document.getElementById('refreshBtn')?.addEventListener('click', updatePortfolio);
+    document.getElementById('clearAlerts')?.addEventListener('click', () => {
+        document.getElementById('alertList').innerHTML = '<li class="alert-placeholder">No active alerts</li>';
+        state.alerts = [];
+    });
+    
+    document.getElementById('addPositionBtn')?.addEventListener('click', addPosition);
+    document.getElementById('sellPositionBtn')?.addEventListener('click', removePosition);
+    
+    // Add API stats element if not exists
+    if (!document.getElementById('apiStats')) {
+        const statusBar = document.querySelector('.status-bar');
+        if (statusBar) {
+            const statsEl = document.createElement('div');
+            statsEl.id = 'apiStats';
+            statsEl.className = 'api-stats';
+            statusBar.appendChild(statsEl);
         }
     }
     
-    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-    
-    // Start live data fetch
-    setTimeout(() => updateMarket(), 1000);
-    
-    // Set interval for updates (10 minutes)
-    setInterval(() => updateMarket(), 600000);
-    
-    // Event listeners
-    document.getElementById('refreshBtn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        updateMarket();
-    });
-    
-    document.getElementById('clearAlerts')?.addEventListener('click', () => {
-        document.getElementById('alertList').innerHTML = '<li class="alert-placeholder">System ready. Waiting for signals...</li>';
-    });
-    
-    document.getElementById('recordEntryBtn')?.addEventListener('click', recordEntry);
-    document.getElementById('recordExitBtn')?.addEventListener('click', recordExit);
-    document.getElementById('exportDataBtn')?.addEventListener('click', exportData);
-    
-    // Strategy modal
-    const modal = document.getElementById('strategyModal');
-    document.getElementById('viewStrategyBtn')?.addEventListener('click', () => {
-        modal.style.display = 'flex';
-    });
-    
-    document.getElementById('closeStrategyModal')?.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-    
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    });
-    
-    // Install PWA
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        const installBtn = document.getElementById('installPWA');
-        if (installBtn) {
-            installBtn.style.display = 'inline';
-            installBtn.onclick = async () => {
-                e.prompt();
-                const { outcome } = await e.userChoice;
-                if (outcome === 'accepted') installBtn.style.display = 'none';
-            };
-        }
-    });
-    
-    addAlert('Dashboard initialized - Mock data shown while loading live');
-    console.log('✅ Dashboard ready with', assets.length, 'assets');
+    addAlert('Portfolio Manager initialized', 'info');
 });
 
-// Expose to window for debugging
-window.thinkingzaka = { 
-    state, 
-    assets, 
-    updateMarket,
+// Expose for debugging
+window.thinkingzaka = {
+    portfolio,
+    state,
+    updatePortfolio,
     addAlert
 };
