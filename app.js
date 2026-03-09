@@ -1,66 +1,132 @@
+// ===========================
+// ThinkingZaka v1 - Live Dashboard
+// ===========================
+
+const ALPHA_API_KEY = "75IQNS7TVU6Z7WR6"; // replace with your key
+
 const assets = {
   btc: "bitcoin",
-  gold: "gold",
-  pltr: "palantir",
-  qqq: "nasdaq-100",
-  sol: "solana"
+  sol: "solana",
+  pltr: "PLTR",
+  qqq: "QQQ",
+  gold: "XAUUSD"
 };
 
-const zones = {
+const entryZones = {
   btc: [63000, 65000],
   sol: [78, 81],
-  pltr: [142, 148]
+  pltr: [142, 148],
+  qqq: [595, 603],
+  gold: [4805, 5000]
 };
 
-async function fetchPrice(asset) {
-  let url;
-  if(asset === "pltr") return Math.round(140 + Math.random()*20); // Mock
-  if(asset === "qqq") return Math.round(595 + Math.random()*20); // Mock
-  url = `https://api.coingecko.com/api/v3/simple/price?ids=${asset}&vs_currencies=usd`;
-  let res = await fetch(url);
-  let data = await res.json();
-  return data[asset]?.usd || 0;
+// Utility for fetching JSON
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  return res.json();
 }
 
-function updateCard(id,name,price){
-  let card = document.getElementById(id);
-  card.innerHTML = `<h3>${name}</h3>
-  <div class="price">$${price}</div>
-  Last update: ${new Date().toLocaleTimeString()}`;
+// ---------------- Crypto via CoinGecko
+async function getCryptoPrice(id) {
+  const data = await fetchJSON(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`);
+  return data[id]?.usd || 0;
 }
 
-function checkZones(name,price){
-  let zone = zones[name];
-  if(!zone) return;
-  if(price >= zone[0] && price <= zone[1]){
-    createAlert(`${name.toUpperCase()} entered entry zone: ${zone[0]}–${zone[1]}`);
+// ---------------- Stocks/Gold via Alpha Vantage
+async function getStockPrice(symbol) {
+  let func = symbol === "XAUUSD" ? "CURRENCY_EXCHANGE_RATE" : "GLOBAL_QUOTE";
+  let url = func === "GLOBAL_QUOTE" ?
+    `https://www.alphavantage.co/query?function=${func}&symbol=${symbol}&apikey=${ALPHA_API_KEY}` :
+    `https://www.alphavantage.co/query?function=${func}&from_currency=XAU&to_currency=USD&apikey=${ALPHA_API_KEY}`;
+  
+  const data = await fetchJSON(url);
+
+  if(func === "GLOBAL_QUOTE") {
+    return parseFloat(data["Global Quote"]["05. price"]) || 0;
+  } else {
+    return parseFloat(data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]) || 0;
   }
 }
 
+// ---------------- Update Cards & Alerts
+function updateCard(id,name,price){
+  const card = document.getElementById(id);
+  if(!card) return;
+  let arrow = priceChange[id] ? (price > priceChange[id] ? "↑" : "↓") : "";
+  priceChange[id] = price;
+  card.innerHTML = `<h3>${name}</h3>
+    <div class="price">$${price.toLocaleString()} ${arrow}</div>
+    Last update: ${new Date().toLocaleTimeString()}`;
+}
+
+// Check entry zones
+function checkEntryZone(id,price){
+  const zone = entryZones[id];
+  if(!zone) return;
+  if(price >= zone[0] && price <= zone[1]){
+    createAlert(`${id.toUpperCase()} entered ENTRY ZONE: ${zone[0]}–${zone[1]}`);
+    notifyUser(`${id.toUpperCase()} ALERT`, `Price at ${price}`);
+  }
+}
+
+// ---------------- Alerts
 function createAlert(text){
-  let list = document.getElementById("alertList");
-  let li = document.createElement("li");
+  const list = document.getElementById("alertList");
+  const li = document.createElement("li");
   li.textContent = text;
   list.prepend(li);
 }
 
-async function updateMarket(){
-  for(const [id,asset] of Object.entries(assets)){
-    let price = await fetchPrice(asset);
-    updateCard(id, id.toUpperCase(), price);
-    checkZones(id, price);
+// ---------------- Notifications
+function notifyUser(title,text){
+  if(!("Notification" in window)) return;
+  if(Notification.permission === "granted"){
+    new Notification(title, { body: text });
+  } else if(Notification.permission !== "denied"){
+    Notification.requestPermission().then(p => {
+      if(p === "granted") new Notification(title,{body:text});
+    });
   }
 }
 
+// ---------------- Macro Regime
 function updateMacro(){
-  let btcPrice = parseFloat(document.querySelector("#btc .price")?.textContent.replace("$","")) || 0;
-  let pltrPrice = parseFloat(document.querySelector("#pltr .price")?.textContent.replace("$","")) || 0;
-  let score = btcPrice > 65000 ? -1 : 1;
-  score += pltrPrice > 150 ? -1 : 1;
+  const btcPrice = priceChange.btc || 0;
+  const pltrPrice = priceChange.pltr || 0;
+  const score = (btcPrice > 65000 ? -1 : 1) + (pltrPrice > 150 ? -1 : 1);
   document.getElementById("macroStatus").innerText = score > 0 ? "WAR BIAS" : "PEACE BIAS";
 }
 
-setInterval(updateMarket,20000);
-setInterval(updateMacro,30000);
+// ---------------- Main Update
+const priceChange = {};
+
+async function updateMarket(){
+  // Crypto
+  const btcPrice = await getCryptoPrice("bitcoin");
+  updateCard("btc","BTC",btcPrice);
+  checkEntryZone("btc",btcPrice);
+
+  const solPrice = await getCryptoPrice("solana");
+  updateCard("sol","SOL",solPrice);
+  checkEntryZone("sol",solPrice);
+
+  // Stocks
+  const pltrPrice = await getStockPrice("PLTR");
+  updateCard("pltr","PLTR",pltrPrice);
+  checkEntryZone("pltr",pltrPrice);
+
+  const qqqPrice = await getStockPrice("QQQ");
+  updateCard("qqq","QQQ",qqqPrice);
+  checkEntryZone("qqq",qqqPrice);
+
+  // Gold
+  const goldPrice = await getStockPrice("XAUUSD");
+  updateCard("gold","GOLD",goldPrice.toFixed(2));
+  checkEntryZone("gold",goldPrice);
+
+  updateMacro();
+}
+
+// Refresh every 30s
 updateMarket();
-updateMacro();
+setInterval(updateMarket,30000);
