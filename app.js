@@ -1,39 +1,92 @@
 // ========================================
 // ThinkingZaka - Complete Strategy Implementation
-// FIXED: Cards loading issue resolved
+// War vs Peace Portfolio · March 2026
+// Mock data first, API updates in background
 // ========================================
 
 // API Configuration
+const TWELVE_DATA_KEY = "ac655a25fb294fc7b46e65acfaa3eca4";
 const ALPHA_API_KEY = "75IQNS7TVU6Z7WR6";
 
-// Complete Asset Configuration
+// Complete Asset Configuration - EXPANDED
 const assets = [
-    // War Portfolio
-    { key: 'btc', id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', category: 'war', type: 'crypto', source: 'coingecko',
-      entry: [63000, 65000], support: 60000, target: 73000, stop: 0.10 },
-    { key: 'pltr', id: 'PLTR', symbol: 'PLTR', name: 'Palantir', category: 'war', type: 'stock', source: 'alphavantage',
-      entry: [142, 148], support: 136, target: 186, stop: 0.10 },
-    { key: 'gold', id: 'XAUUSD', symbol: 'GOLD', name: 'Gold', category: 'war', type: 'forex', source: 'alphavantage',
-      entry: [4805, 5000], support: 4780, target: 6000, stop: 0.05 },
+    // ===== WAR PORTFOLIO =====
+    // Defense, Safe Haven, Commodities
+    { 
+        key: 'btc', id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', 
+        category: 'war', type: 'crypto', source: 'coingecko',
+        entry: [63000, 65000], support: 60000, target: 73000, stop: 0.10,
+        mockPrice: 67800
+    },
+    { 
+        key: 'eth', id: 'ethereum', symbol: 'ETH', name: 'Ethereum', 
+        category: 'war', type: 'crypto', source: 'coingecko',
+        entry: [3200, 3400], support: 3000, target: 4000, stop: 0.12,
+        mockPrice: 3350
+    },
+    { 
+        key: 'gold', id: 'XAUUSD', symbol: 'GOLD', name: 'Gold', 
+        category: 'war', type: 'forex', source: 'twelve',
+        entry: [4805, 5000], support: 4780, target: 6000, stop: 0.05,
+        mockPrice: 4850
+    },
+    { 
+        key: 'oil', id: 'CL', symbol: 'OIL', name: 'Crude Oil', 
+        category: 'war', type: 'commodity', source: 'twelve',
+        entry: [75, 78], support: 72, target: 90, stop: 0.08,
+        mockPrice: 76.50
+    },
+    { 
+        key: 'pltr', id: 'PLTR', symbol: 'PLTR', name: 'Palantir', 
+        category: 'war', type: 'stock', source: 'twelve',
+        entry: [142, 148], support: 136, target: 186, stop: 0.10,
+        mockPrice: 145.50
+    },
     
-    // Peace Portfolio - US
-    { key: 'qqq', id: 'QQQ', symbol: 'QQQ', name: 'Nasdaq', category: 'peace', type: 'stock', source: 'alphavantage',
-      entry: [595, 603], support: 585, target: 616, stop: 0.08 },
-    { key: 'sol', id: 'solana', symbol: 'SOL', name: 'Solana', category: 'peace', type: 'crypto', source: 'coingecko',
-      entry: [78, 81], support: 76, target: 101, stop: 0.15 },
-    
-    // South African Portfolio
-    { key: 'capitec', id: 'CPI.JO', symbol: 'CPI', name: 'Capitec', category: 'peace', type: 'sa_stock', source: 'alphavantage',
-      entry: [4155, 4170], support: 4170, target: 4779, stop: 0.10, fallback: 4210 },
-    { key: 'standardbank', id: 'SBK.JO', symbol: 'SBK', name: 'Standard Bank', category: 'peace', type: 'sa_stock', source: 'alphavantage',
-      entry: [290, 303], support: 285, target: 350, stop: 0.10, fallback: 296 },
-    { key: 'firstrand', id: 'FSR.JO', symbol: 'FSR', name: 'FirstRand', category: 'peace', type: 'sa_stock', source: 'alphavantage',
-      entry: [86, 87], support: 84, target: 102, stop: 0.10, fallback: 86 },
-    { key: 'shoprite', id: 'SHP.JO', symbol: 'SHP', name: 'Shoprite', category: 'peace', type: 'sa_stock', source: 'alphavantage',
-      entry: [260, 261], support: 255, target: 285, stop: 0.10, fallback: 260 }
+    // ===== PEACE PORTFOLIO =====
+    // Growth, Technology, Risk-On
+    { 
+        key: 'qqq', id: 'QQQ', symbol: 'QQQ', name: 'Nasdaq', 
+        category: 'peace', type: 'stock', source: 'twelve',
+        entry: [595, 603], support: 585, target: 616, stop: 0.08,
+        mockPrice: 599.75
+    },
+    { 
+        key: 'sol', id: 'solana', symbol: 'SOL', name: 'Solana', 
+        category: 'peace', type: 'crypto', source: 'coingecko',
+        entry: [78, 81], support: 76, target: 101, stop: 0.15,
+        mockPrice: 82.50
+    },
+    { 
+        key: 'link', id: 'chainlink', symbol: 'LINK', name: 'Chainlink', 
+        category: 'peace', type: 'crypto', source: 'coingecko',
+        entry: [18, 20], support: 16, target: 28, stop: 0.12,
+        mockPrice: 19.25
+    },
+    { 
+        key: 'nvda', id: 'NVDA', symbol: 'NVDA', name: 'NVIDIA', 
+        category: 'peace', type: 'stock', source: 'twelve',
+        entry: [820, 850], support: 780, target: 1000, stop: 0.08,
+        mockPrice: 835.50
+    },
+    { 
+        key: 'msft', id: 'MSFT', symbol: 'MSFT', name: 'Microsoft', 
+        category: 'peace', type: 'stock', source: 'twelve',
+        entry: [410, 420], support: 395, target: 480, stop: 0.07,
+        mockPrice: 415.25
+    },
+    { 
+        key: 'goog', id: 'GOOGL', symbol: 'GOOG', name: 'Google', 
+        category: 'peace', type: 'stock', source: 'twelve',
+        entry: [165, 170], support: 158, target: 200, stop: 0.08,
+        mockPrice: 167.80
+    }
 ];
 
+// ========================================
 // State Management
+// ========================================
+
 const state = {
     prices: {},
     history: {},
@@ -42,19 +95,21 @@ const state = {
     alphaCalls: 0,
     lastReset: new Date().toDateString(),
     cycleCount: 0,
-    portfolio: { war: 0, peace: 0, cash: 100000 }
+    portfolio: { war: 100000, peace: 100000, cash: 50000 }, // $250k total
+    dataSources: { twelve: 0, coingecko: 0, alpha: 0 }
 };
 
-// Initialize history
+// Initialize history with mock data
 assets.forEach(asset => { 
-    state.history[asset.key] = []; 
+    state.prices[asset.key] = asset.mockPrice;
+    state.history[asset.key] = [asset.mockPrice * 0.98, asset.mockPrice * 0.99, asset.mockPrice]; 
 });
 
 // ========================================
 // Utility Functions
 // ========================================
 
-function addAlert(text) {
+function addAlert(text, type = 'info') {
     const list = document.getElementById('alertList');
     if (!list) return;
     
@@ -65,6 +120,12 @@ function addAlert(text) {
     
     const li = document.createElement('li');
     li.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+    
+    // Color code alerts
+    if (type === 'buy') li.style.borderLeftColor = '#00ff9c';
+    if (type === 'sell') li.style.borderLeftColor = '#ff4d4d';
+    if (type === 'warning') li.style.borderLeftColor = '#ffd700';
+    
     list.prepend(li);
     
     // Keep only last 20 alerts
@@ -85,55 +146,49 @@ async function fetchJSON(url, retries = 2) {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return await res.json();
         } catch (error) {
-            console.log(`Fetch attempt ${i + 1} failed:`, error.message);
             if (i === retries - 1) throw error;
             await new Promise(r => setTimeout(r, 2000));
         }
     }
 }
 
-function checkAlphaLimit() {
-    const today = new Date().toDateString();
-    if (today !== state.lastReset) {
-        state.alphaCalls = 0;
-        state.lastReset = today;
-    }
-    
-    const el = document.getElementById('apiUsage');
-    if (el) {
-        el.textContent = `API: ${state.alphaCalls}/25`;
-        if (state.alphaCalls > 20) {
-            el.style.color = '#ff4d4d';
-        } else {
-            el.style.color = '';
-        }
-    }
-    
-    return state.alphaCalls < 23;
-}
-
 // ========================================
-// Price Fetching with Fallbacks
+// API Fetching with Twelve Data (YOUR KEY)
 // ========================================
 
-async function getUSDZARRate() {
+async function fetchTwelveData(symbol) {
     try {
-        const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=ZAR&apikey=${ALPHA_API_KEY}`;
-        state.alphaCalls++;
+        state.dataSources.twelve++;
+        const url = `https://api.twelvedata.com/price?symbol=${symbol}&apikey=${TWELVE_DATA_KEY}`;
         const data = await fetchJSON(url);
-        return parseFloat(data['Realtime Currency Exchange Rate']?.['5. Exchange Rate'] || 18.5);
+        return parseFloat(data.price) || 0;
     } catch (error) {
-        console.log('USD/ZAR fetch failed, using fallback:', error);
-        return 18.5;
+        console.log(`Twelve Data error for ${symbol}:`, error);
+        return 0;
     }
 }
+
+async function fetchCoinGecko(id) {
+    try {
+        state.dataSources.coingecko++;
+        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`;
+        const data = await fetchJSON(url);
+        return data[id]?.usd || 0;
+    } catch (error) {
+        console.log(`CoinGecko error for ${id}:`, error);
+        return 0;
+    }
+}
+
+// ========================================
+// Price Fetching - Mock First, API Updates Later
+// ========================================
 
 async function fetchPrice(asset) {
     const now = Date.now();
     
     // Check cache (5 minutes)
     if (state.lastFetch[asset.key] && now - state.lastFetch[asset.key] < 300000) {
-        console.log(`Using cached data for ${asset.key}`);
         return state.prices[asset.key];
     }
     
@@ -142,67 +197,14 @@ async function fetchPrice(asset) {
     try {
         let price = 0;
         
-        if (asset.type === 'crypto') {
-            // CoinGecko - free, unlimited
-            const data = await fetchJSON(`https://api.coingecko.com/api/v3/simple/price?ids=${asset.id}&vs_currencies=usd`);
-            price = data[asset.id]?.usd || 0;
-            console.log(`${asset.key} price from CoinGecko:`, price);
-        }
-        else if (asset.type === 'sa_stock') {
-            if (!checkAlphaLimit()) {
-                console.log(`Alpha limit reached, using fallback for ${asset.key}`);
-                return state.prices[asset.key] || asset.fallback || 0;
-            }
-            
-            const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${asset.id}&apikey=${ALPHA_API_KEY}`;
-            state.alphaCalls++;
-            const data = await fetchJSON(url);
-            
-            // Alpha Vantage returns empty object if limit reached or no data
-            if (!data || Object.keys(data).length === 0) {
-                console.log(`Empty response for ${asset.key}`);
-                return state.prices[asset.key] || asset.fallback || 0;
-            }
-            
-            const quote = data['Global Quote'] || {};
-            const zarPrice = parseFloat(quote['05. price'] || 0);
-            
-            if (zarPrice > 0) {
-                const usdZar = await getUSDZARRate();
-                price = zarPrice / usdZar;
-                console.log(`${asset.key} ZAR: ${zarPrice}, USD: ${price}, rate: ${usdZar}`);
-            } else {
-                console.log(`No price data for ${asset.key}, using fallback`);
-                return state.prices[asset.key] || asset.fallback || 0;
-            }
-        }
-        else if (asset.type === 'forex') {
-            if (!checkAlphaLimit()) {
-                return state.prices[asset.key] || 0;
-            }
-            
-            const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=XAU&to_currency=USD&apikey=${ALPHA_API_KEY}`;
-            state.alphaCalls++;
-            const data = await fetchJSON(url);
-            
-            const rateData = data['Realtime Currency Exchange Rate'] || {};
-            price = parseFloat(rateData['5. Exchange Rate'] || 0);
-            console.log(`${asset.key} price from Alpha:`, price);
-        }
-        else {
-            if (!checkAlphaLimit()) {
-                return state.prices[asset.key] || 0;
-            }
-            
-            const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${asset.id}&apikey=${ALPHA_API_KEY}`;
-            state.alphaCalls++;
-            const data = await fetchJSON(url);
-            
-            const quote = data['Global Quote'] || {};
-            price = parseFloat(quote['05. price'] || 0);
-            console.log(`${asset.key} price from Alpha:`, price);
+        // Try real API based on source
+        if (asset.source === 'twelve') {
+            price = await fetchTwelveData(asset.id);
+        } else if (asset.source === 'coingecko') {
+            price = await fetchCoinGecko(asset.id);
         }
         
+        // If API succeeded, update
         if (price > 0) {
             state.prices[asset.key] = price;
             state.lastFetch[asset.key] = now;
@@ -210,17 +212,17 @@ async function fetchPrice(asset) {
             if (state.history[asset.key].length > 20) {
                 state.history[asset.key].shift();
             }
-            console.log(`✅ ${asset.key} updated: $${price}`);
+            console.log(`✅ ${asset.key} updated to $${price}`);
+            return price;
         } else {
-            console.log(`⚠️ Zero price for ${asset.key}, keeping previous:`, state.prices[asset.key]);
-            return state.prices[asset.key] || asset.fallback || 0;
+            // Keep mock price
+            console.log(`⚠️ Using mock data for ${asset.key}`);
+            return state.prices[asset.key] || asset.mockPrice;
         }
         
-        return price;
-        
     } catch (error) {
-        console.error(`❌ Error fetching ${asset.key}:`, error);
-        return state.prices[asset.key] || asset.fallback || 0;
+        console.error(`Error fetching ${asset.key}:`, error);
+        return state.prices[asset.key] || asset.mockPrice;
     }
 }
 
@@ -230,12 +232,9 @@ async function fetchPrice(asset) {
 
 function calculateRSI(key, currentPrice) {
     const history = state.history[key] || [];
-    if (history.length < 14) {
-        return 50; // Neutral until we have enough data
-    }
+    if (history.length < 14) return 50;
     
     let gains = 0, losses = 0;
-    // Use last 14 periods for calculation
     for (let i = history.length - 14; i < history.length - 1; i++) {
         if (i < 0 || i + 1 >= history.length) continue;
         const change = history[i + 1] - history[i];
@@ -253,18 +252,7 @@ function calculateRSI(key, currentPrice) {
 }
 
 function analyzeAsset(asset, price) {
-    if (!price || price === 0) {
-        return {
-            price: 0,
-            inZone: false,
-            rsi: 50,
-            isOverbought: false,
-            isOversold: false,
-            isPullback: false,
-            targetDistance: '0',
-            signal: null
-        };
-    }
+    if (!price) return null;
     
     const inZone = price >= asset.entry[0] && price <= asset.entry[1];
     const nearSupport = price <= asset.support * 1.02;
@@ -280,8 +268,7 @@ function analyzeAsset(asset, price) {
         isPullback = recentHigh > price * 1.03;
     }
     
-    // Target distance
-    const targetDistance = asset.target > 0 ? ((asset.target - price) / price * 100).toFixed(1) : '0';
+    const targetDistance = ((asset.target - price) / price * 100).toFixed(1);
     
     // Entry logic
     let signal = null;
@@ -317,81 +304,68 @@ function analyzeAsset(asset, price) {
 }
 
 // ========================================
-// UI Rendering - FIXED VERSION
+// UI Rendering
 // ========================================
 
 function renderCard(asset) {
-    const price = state.prices[asset.key] || 0;
-    const priceDisplay = price || asset.fallback || 0;
+    const price = state.prices[asset.key] || asset.mockPrice;
+    if (!price) return;
     
-    // Get or create card container
     let card = document.getElementById(`card-${asset.key}`);
     
-    // If card doesn't exist, determine which grid it belongs to
+    // Determine which grid this belongs to
     if (!card) {
         let gridId = '';
-        
         if (asset.category === 'war') {
             gridId = 'warPortfolio';
-        } else if (asset.key === 'qqq' || asset.key === 'sol') {
+        } else {
             gridId = 'peacePortfolioUS';
-        } else if (['capitec', 'standardbank', 'firstrand', 'shoprite'].includes(asset.key)) {
-            gridId = 'saPortfolio';
         }
         
         const grid = document.getElementById(gridId);
-        if (!grid) {
-            console.error(`Grid ${gridId} not found for ${asset.key}`);
-            return;
-        }
+        if (!grid) return;
         
         // Remove loading placeholder
         const loadingEl = document.getElementById(`${asset.key}-loading`);
-        if (loadingEl) {
-            loadingEl.remove();
-        }
+        if (loadingEl) loadingEl.remove();
         
-        // Create new card
         card = document.createElement('div');
         card.id = `card-${asset.key}`;
         card.className = `card ${asset.category}`;
         grid.appendChild(card);
-        console.log(`Created card for ${asset.key}`);
     }
     
-    // Calculate analysis
-    const analysis = analyzeAsset(asset, priceDisplay);
+    const analysis = analyzeAsset(asset, price);
     
     // Price change indicator
     const history = state.history[asset.key] || [];
-    const prevPrice = history.length >= 2 ? history[history.length - 2] : priceDisplay;
-    let arrow = '→';
-    let priceClass = '';
-    
-    if (priceDisplay > prevPrice) {
-        arrow = '↑';
-        priceClass = 'up';
-    } else if (priceDisplay < prevPrice) {
-        arrow = '↓';
-        priceClass = 'down';
-    }
+    const prevPrice = history.length >= 2 ? history[history.length - 2] : price;
+    const arrow = price > prevPrice ? '↑' : (price < prevPrice ? '↓' : '→');
+    const priceClass = price > prevPrice ? 'up' : (price < prevPrice ? 'down' : '');
     
     // Generate alert for buy signals (throttled)
     if (analysis?.signal?.type === 'BUY') {
         const lastAlert = localStorage.getItem(`alert_${asset.key}`);
         const now = Date.now();
         if (!lastAlert || now - parseInt(lastAlert) > 3600000) {
-            addAlert(`${asset.symbol}: ${analysis.signal.reason} at $${priceDisplay.toFixed(2)}`);
+            addAlert(`${asset.symbol}: ${analysis.signal.reason} at $${price.toFixed(2)}`, 'buy');
             localStorage.setItem(`alert_${asset.key}`, now.toString());
         }
     }
     
-    // Format price based on value
-    let formattedPrice = priceDisplay.toFixed(2);
-    if (priceDisplay > 1000) formattedPrice = priceDisplay.toFixed(0);
-    if (priceDisplay > 10000) formattedPrice = priceDisplay.toLocaleString();
+    // Format price display
+    let priceDisplay = '';
+    if (price > 1000) {
+        priceDisplay = `$${price.toFixed(0)}`;
+    } else if (price > 100) {
+        priceDisplay = `$${price.toFixed(2)}`;
+    } else if (price > 1) {
+        priceDisplay = `$${price.toFixed(2)}`;
+    } else {
+        priceDisplay = `$${price.toFixed(4)}`;
+    }
     
-    // Build HTML
+    // Signal badge HTML
     let signalHtml = '';
     if (analysis?.signal) {
         let signalClass = '';
@@ -406,6 +380,7 @@ function renderCard(asset) {
         `;
     }
     
+    // RSI class
     let rsiClass = '';
     if (analysis?.isOverbought) rsiClass = 'overbought';
     else if (analysis?.isOversold) rsiClass = 'oversold';
@@ -416,7 +391,7 @@ function renderCard(asset) {
             <span class="card-category ${asset.category}">${asset.category}</span>
         </div>
         <div class="card-price ${priceClass}">
-            $${formattedPrice} ${arrow}
+            ${priceDisplay} ${arrow}
         </div>
         <div class="strategy-panel">
             <div class="zone-row">
@@ -434,7 +409,7 @@ function renderCard(asset) {
             ${signalHtml}
         </div>
         <div class="card-footer">
-            <span>${asset.source}</span>
+            <span>${state.lastFetch[asset.key] ? 'Live' : 'Mock'}</span>
             <span>${new Date().toLocaleTimeString()}</span>
         </div>
     `;
@@ -445,39 +420,40 @@ function renderCard(asset) {
 // ========================================
 
 function detectRegime() {
-    const btc = state.prices.btc || 0;
-    const pltr = state.prices.pltr || 0;
-    const qqq = state.prices.qqq || 0;
-    const gold = state.prices.gold || 0;
-    
-    const btcAsset = assets.find(a => a.key === 'btc');
-    const pltrAsset = assets.find(a => a.key === 'pltr');
-    const qqqAsset = assets.find(a => a.key === 'qqq');
-    const goldAsset = assets.find(a => a.key === 'gold');
+    const warAssets = assets.filter(a => a.category === 'war');
+    const peaceAssets = assets.filter(a => a.category === 'peace');
     
     let warScore = 0;
     let peaceScore = 0;
     
-    if (gold > (goldAsset?.support || 0) * 1.02) warScore += 2;
-    if (btc < (btcAsset?.support || 0)) warScore += 1;
-    if (pltr > (pltrAsset?.target || 0)) warScore += 2;
+    // Check war assets against targets
+    warAssets.forEach(asset => {
+        const price = state.prices[asset.key] || 0;
+        if (price > asset.target * 0.95) warScore += 1;
+        if (price < asset.support) warScore += 2; // Fear = war bias
+    });
     
-    if (qqq > (qqqAsset?.support || 0) * 1.03) peaceScore += 2;
-    if (btc > (btcAsset?.entry[0] || 0)) peaceScore += 1;
-    if (pltr < (pltrAsset?.entry[1] || 0)) peaceScore += 1;
+    // Check peace assets
+    peaceAssets.forEach(asset => {
+        const price = state.prices[asset.key] || 0;
+        if (price > asset.target * 0.95) peaceScore += 2;
+        if (price > asset.entry[1]) peaceScore += 1; // Breakout = peace bias
+    });
     
-    const total = state.portfolio.war + state.portfolio.peace + state.portfolio.cash;
-    const warPct = total > 0 ? ((state.portfolio.war / total) * 100).toFixed(1) : '0';
-    const peacePct = total > 0 ? ((state.portfolio.peace / total) * 100).toFixed(1) : '0';
+    // Calculate allocations
+    const totalPortfolio = state.portfolio.war + state.portfolio.peace + state.portfolio.cash;
+    const warPct = ((state.portfolio.war / totalPortfolio) * 100).toFixed(1);
+    const peacePct = ((state.portfolio.peace / totalPortfolio) * 100).toFixed(1);
     
-    const allocationEl = document.getElementById('allocationStatus');
-    if (allocationEl) {
-        allocationEl.innerHTML = `${warPct}% War · ${peacePct}% Peace · 20% Cash`;
-    }
+    document.getElementById('allocationStatus').innerHTML = 
+        `${warPct}% War · ${peacePct}% Peace · 20% Cash`;
     
-    if (warScore > peaceScore + 1) {
+    document.getElementById('warScore').textContent = warScore;
+    document.getElementById('peaceScore').textContent = peaceScore;
+    
+    if (warScore > peaceScore + 2) {
         return { text: 'WAR BIAS - Favor defense', class: 'war' };
-    } else if (peaceScore > warScore + 1) {
+    } else if (peaceScore > warScore + 2) {
         return { text: 'PEACE BIAS - Favor growth', class: 'peace' };
     } else {
         return { text: 'NEUTRAL - Balanced', class: 'neutral' };
@@ -485,74 +461,59 @@ function detectRegime() {
 }
 
 // ========================================
-// Main Update - FIXED with better error handling
+// Main Update - Mock First, API Later
 // ========================================
 
 async function updateMarket() {
     console.log('🔄 Updating market data...');
-    state.cycleCount++;
     
-    // Show loading state
     const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) {
         refreshBtn.textContent = 'Updating...';
         refreshBtn.disabled = true;
     }
     
-    // Update API usage display
-    checkAlphaLimit();
-    
     try {
-        // Fetch all prices in parallel for better performance
-        const promises = assets.map(asset => fetchPrice(asset));
-        await Promise.allSettled(promises);
+        // First pass: Use mock data immediately (already in state)
+        assets.forEach(asset => renderCard(asset));
         
-        // Render all cards
-        assets.forEach(asset => {
-            try {
-                renderCard(asset);
-            } catch (error) {
-                console.error(`Error rendering ${asset.key}:`, error);
+        // Second pass: Fetch real data in background
+        setTimeout(async () => {
+            console.log('📡 Fetching live data...');
+            
+            // Fetch in parallel
+            const promises = assets.map(asset => fetchPrice(asset));
+            await Promise.allSettled(promises);
+            
+            // Re-render with real data
+            assets.forEach(asset => renderCard(asset));
+            
+            // Update regime
+            const regime = detectRegime();
+            const macroEl = document.getElementById('macroStatus');
+            if (macroEl) {
+                const regimeValue = macroEl.querySelector('.regime-value');
+                if (regimeValue) {
+                    regimeValue.textContent = regime.text;
+                    regimeValue.className = `regime-value ${regime.class}`;
+                }
             }
-        });
-        
-        // Update regime
-        const regime = detectRegime();
-        const macroEl = document.getElementById('macroStatus');
-        if (macroEl) {
-            const regimeValue = macroEl.querySelector('.regime-value');
-            if (regimeValue) {
-                regimeValue.textContent = regime.text;
-                regimeValue.className = `regime-value ${regime.class}`;
-            }
-        }
-        
-        // Update timestamp
-        const lastUpdate = document.getElementById('lastUpdate');
-        if (lastUpdate) {
-            lastUpdate.textContent = new Date().toLocaleTimeString();
-        }
-        
-        // Update connection status
-        const dot = document.querySelector('.dot');
-        if (dot) {
-            dot.style.background = '#00ff9c';
-        }
-        
-        console.log('✅ Update complete');
-        addAlert('Market data updated');
+            
+            // Update timestamp
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // Update connection status
+            const dot = document.querySelector('.dot');
+            if (dot) dot.style.background = '#00ff9c';
+            
+            console.log('✅ Live data loaded');
+            addAlert('Live data updated');
+            
+        }, 2000); // Delay to show mock first
         
     } catch (error) {
-        console.error('❌ Update failed:', error);
-        addAlert(`Update failed: ${error.message}`);
-        
-        // Show error in connection status
-        const dot = document.querySelector('.dot');
-        if (dot) {
-            dot.style.background = '#ff4d4d';
-        }
+        console.error('Update error:', error);
     } finally {
-        // Reset button
         if (refreshBtn) {
             refreshBtn.textContent = 'Refresh';
             refreshBtn.disabled = false;
@@ -565,7 +526,7 @@ async function updateMarket() {
 // ========================================
 
 function recordEntry() {
-    const asset = prompt('Enter asset symbol (BTC, PLTR, CPI, etc):');
+    const asset = prompt('Enter asset symbol (BTC, NVDA, etc):');
     if (!asset) return;
     
     const assetKey = asset.toLowerCase();
@@ -594,7 +555,7 @@ function recordEntry() {
     state.portfolio[assetData.category] += priceNum * quantityNum;
     state.portfolio.cash -= priceNum * quantityNum;
     
-    addAlert(`Recorded ${assetData.symbol} entry: ${quantity} @ $${price}`);
+    addAlert(`Recorded ${assetData.symbol} entry: ${quantity} @ $${price}`, 'info');
 }
 
 function recordExit() {
@@ -635,7 +596,7 @@ function recordExit() {
     state.portfolio.cash += priceNum * quantityNum;
     delete state.entries[assetData.key];
     
-    addAlert(`Exited ${assetData.symbol}: ${pnl}% P&L`);
+    addAlert(`Exited ${assetData.symbol}: ${pnl}% P&L`, pnl > 0 ? 'buy' : 'sell');
 }
 
 function exportData() {
@@ -664,23 +625,27 @@ function exportData() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 ThinkingZaka initializing...');
     
-    // Add test data for immediate display (prevents empty loading state)
-    assets.forEach(asset => {
-        state.prices[asset.key] = asset.fallback || 0;
-    });
+    // Initial render with mock data
+    assets.forEach(asset => renderCard(asset));
     
-    // Initial render with fallback data
-    assets.forEach(asset => {
-        renderCard(asset);
-    });
+    // Initial macro update
+    const regime = detectRegime();
+    const macroEl = document.getElementById('macroStatus');
+    if (macroEl) {
+        const regimeValue = macroEl.querySelector('.regime-value');
+        if (regimeValue) {
+            regimeValue.textContent = regime.text;
+            regimeValue.className = `regime-value ${regime.class}`;
+        }
+    }
     
-    // Initial update
-    setTimeout(() => {
-        updateMarket();
-    }, 1000);
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
     
-    // Set interval (10 minutes)
-    setInterval(updateMarket, 600000);
+    // Start live data fetch
+    setTimeout(() => updateMarket(), 1000);
+    
+    // Set interval for updates (10 minutes)
+    setInterval(() => updateMarket(), 600000);
     
     // Event listeners
     document.getElementById('refreshBtn')?.addEventListener('click', (e) => {
@@ -724,8 +689,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    console.log('✅ Dashboard ready');
-    addAlert('System initialized');
+    addAlert('Dashboard initialized - Mock data shown while loading live');
+    console.log('✅ Dashboard ready with', assets.length, 'assets');
 });
 
 // Expose to window for debugging
@@ -733,9 +698,5 @@ window.thinkingzaka = {
     state, 
     assets, 
     updateMarket,
-    addAlert,
-    fetchPrice: (key) => {
-        const asset = assets.find(a => a.key === key);
-        if (asset) fetchPrice(asset);
-    }
+    addAlert
 };
